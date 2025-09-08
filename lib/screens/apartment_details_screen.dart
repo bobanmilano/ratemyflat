@@ -266,7 +266,7 @@ class ApartmentDetailScreen extends StatelessWidget {
               // Vermieter-Link (wenn vorhanden)
               if (apartmentData['landlordId'] != null) ...[
                 Text(
-                  'Vermieter:',
+                  'Vermietet von:',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8),

@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 
 class TenantVerificationScreen extends StatefulWidget {
   final bool isApartment;
-  final String targetName; 
-  
+  final String targetName;
+
   const TenantVerificationScreen({
-    Key? key, 
+    Key? key,
     required this.isApartment,
     required this.targetName,
   }) : super(key: key);
 
   @override
-  _TenantVerificationScreenState createState() => _TenantVerificationScreenState();
+  _TenantVerificationScreenState createState() =>
+      _TenantVerificationScreenState();
 }
 
 class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
@@ -22,15 +23,18 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isApartment ? 'Wohnung bewerten' : 'Vermieter bewerten'),
+        title: Text(
+          widget.isApartment ? 'Wohnung bewerten' : 'Vermieter bewerten',
+        ),
       ),
-      body: SingleChildScrollView( // ScrollView hinzugefügt
+      body: SingleChildScrollView(
+        // ScrollView hinzugefügt
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Rechtliche Bestätigung',
+              'Bestätigung',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColor,
@@ -42,7 +46,7 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
               style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
             SizedBox(height: 16),
-            
+
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -55,11 +59,7 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.warning_amber,
-                        color: Colors.orange,
-                        size: 20,
-                      ),
+                      Icon(Icons.info_rounded, color: Colors.green, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Wichtige Hinweise',
@@ -71,22 +71,42 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
                     ],
                   ),
                   SizedBox(height: 12),
-                  
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      'Unser Ziel ist es Mietern eine faire, aktuelle und objektive '
+                      'Beurteilung von Wohnungen und Vermietern zur Verfügung zu stellen! '
+                      'Bitte beachten Sie bei Ihrer Beurteilung folgende Punkte:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontSize: 12,
+                        color: Colors.blue[800],
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+
                   _buildVerificationPoint(
                     'Persönliche Erfahrung',
                     'Ich bin/war ${widget.isApartment ? 'Mieter dieser Wohnung' : 'Kunde dieses Vermieters'}',
                   ),
-                  
+
                   _buildVerificationPoint(
                     'Wahrheitsgemäße Angaben',
                     'Meine Bewertung basiert auf tatsächlicher Erfahrung',
                   ),
-                  
+
                   _buildVerificationPoint(
                     'Keine Diffamierung',
                     'Ich mache keine falschen oder beleidigenden Aussagen',
                   ),
-                  
+
                   _buildVerificationPoint(
                     'Keine kommerziellen Interessen',
                     'Ich habe kein geschäftliches Interesse',
@@ -94,9 +114,9 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
                 ],
               ),
             ),
-            
+
             SizedBox(height: 16),
-            
+
             CheckboxListTile(
               title: Text(
                 'Ich bestätige, dass ich Mieter bin/war und die Angaben wahr sind',
@@ -112,9 +132,9 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
               contentPadding: EdgeInsets.zero,
               dense: true, // Kompakter
             ),
-            
+
             SizedBox(height: 16),
-            
+
             // Kompakte Button-Leiste
             Row(
               children: [
@@ -132,7 +152,7 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
                   child: SizedBox(
                     height: 40, // Feste Höhe
                     child: ElevatedButton(
-                      onPressed: _isChecked 
+                      onPressed: _isChecked
                           ? () => Navigator.pop(context, true)
                           : null,
                       child: Text('Weiter', style: TextStyle(fontSize: 14)),
@@ -153,11 +173,7 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.check_circle,
-            color: Colors.green,
-            size: 16,
-          ),
+          Icon(Icons.check_circle, color: Colors.green, size: 16),
           SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -165,17 +181,11 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
               ],
             ),

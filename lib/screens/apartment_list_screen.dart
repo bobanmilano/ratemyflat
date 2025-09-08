@@ -533,6 +533,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Zeige Tenant Verification vor dem Formular
           final confirmed = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -543,12 +544,13 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
             ),
           );
 
+          // Nur wenn bestätigt, zeige das Formular
           if (confirmed == true) {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => AddApartmentScreen()),
             );
-
+            
             // Wenn eine neue Wohnung erfolgreich erstellt wurde, aktualisiere die Liste
             if (result != null && result is Map && result['success'] == true) {
               // Force refresh der Liste
