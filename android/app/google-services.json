@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "323316501849",
+    "firebase_url": "https://mietbewertung-ddf4a-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "mietbewertung-ddf4a",
+    "storage_bucket": "mietbewertung-ddf4a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:323316501849:android:abeabb3eea6f771a8a9048",
+        "android_client_info": {
+          "package_name": "com.example.immo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-zw6KctOQGXDM6GfFhXZAdiwgJK9evqo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:323316501849:android:e5f7ee2f899826ae8a9048",
+        "android_client_info": {
+          "package_name": "com.rentreview"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-zw6KctOQGXDM6GfFhXZAdiwgJK9evqo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
