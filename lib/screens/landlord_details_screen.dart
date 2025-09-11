@@ -15,7 +15,7 @@ class LandlordDetailScreen extends StatelessWidget {
   // Methode zur Berechnung der Durchschnittsbewertung für eine Kategorie
   double calculateAverageRating(List<dynamic> reviews, String category) {
     if (reviews == null || reviews.isEmpty) {
-      return 0.0;
+      return 0.0; // Keine Bewertungen vorhanden
     }
 
     double totalSum = 0;
@@ -32,10 +32,10 @@ class LandlordDetailScreen extends StatelessWidget {
     return count > 0 ? totalSum / count : 0.0;
   }
 
-  // Methode zur Berechnung der Gesamtbewertung
+  // Methode zur Berechnung der Gesamtbewertung (Durchschnitt aller Kategorien)
   double calculateOverallRating(List<dynamic> reviews) {
     if (reviews == null || reviews.isEmpty) {
-      return 0.0;
+      return 0.0; // Keine Bewertungen vorhanden
     }
 
     double totalSum = 0;
@@ -50,7 +50,8 @@ class LandlordDetailScreen extends StatelessWidget {
           'transparency': review['transparency']?.toDouble() ?? 0.0,
           'responseTime': review['responseTime']?.toDouble() ?? 0.0,
           'respect': review['respect']?.toDouble() ?? 0.0,
-          'renovationManagement': review['renovationManagement']?.toDouble() ?? 0.0,
+          'renovationManagement':
+              review['renovationManagement']?.toDouble() ?? 0.0,
           'leaseAgreement': review['leaseAgreement']?.toDouble() ?? 0.0,
           'operatingCosts': review['operatingCosts']?.toDouble() ?? 0.0,
           'depositHandling': review['depositHandling']?.toDouble() ?? 0.0,
@@ -100,7 +101,7 @@ class LandlordDetailScreen extends StatelessWidget {
         return Dialog(
           child: GestureDetector(
             onTap: () {
-              Navigator.pop(context);
+              Navigator.pop(context); // Schließe den Dialog beim Tippen
             },
             child: InteractiveViewer(
               boundaryMargin: EdgeInsets.all(20.0),
@@ -126,8 +127,13 @@ class LandlordDetailScreen extends StatelessWidget {
     final landlordData = landlordDoc.data() as Map<String, dynamic>;
     final List<dynamic>? reviews = landlordData['reviews'];
     final overallRating = calculateOverallRating(reviews ?? []);
+    final valueForMoneyRating = calculateAverageRating(
+      reviews ?? [],
+      'valueForMoney',
+    );
+    final landlordRating = calculateAverageRating(reviews ?? [], 'landlord');
 
-    // Alle Bewertungskategorien für Vermieter
+    // Alle Bewertungskategorien
     final categories = [
       'Kommunikation',
       'Hilfsbereitschaft',
@@ -155,253 +161,407 @@ class LandlordDetailScreen extends StatelessWidget {
       'Kaution': 'depositHandling',
     };
 
-    // Bilder verarbeiten - LANDLORD DEFAULT-Bild
+    // Bilder verarbeiten
     final List<dynamic>? imageUrls = landlordData['imageUrls'];
     final hasImages = imageUrls != null && imageUrls.isNotEmpty;
+    final firstImageUrl = hasImages ? imageUrls![0] : null;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Vermieter Details'),
-      ),
+      appBar: AppBar(title: Text('Vermieter Details'), centerTitle: true),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Gallery of Images - MIT LANDLORD-DEFAULT-BILD
-              SizedBox(
-                height: 200,
-                child: hasImages
-                    ? ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: imageUrls?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          final imageUrl = imageUrls?[index] ?? '';
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                _showImageDialog(context, imageUrl);
-                              },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageUrl,
-                                  width: 150,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    // LANDLORD-DEFAULT-BILD bei Fehler
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.asset(
-                                        'assets/landlord_placeholder.png', // ✅ Korrigiert
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    );
-                                  },
-                                ),
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Gallery of Images - MIT CONSISTENT DESIGN
+            SizedBox(
+              height: 200,
+              child: hasImages
+                  ? ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: imageUrls?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        final imageUrl = imageUrls?[index] ?? '';
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              _showImageDialog(context, imageUrl);
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                imageUrl,
+                                width: 150,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset(
+                                      'assets/landlord_placeholder.png',
+                                      width: 150,
+                                      height: 150,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                          );
-                        },
-                      )
-                    : // Keine Bilder vorhanden - nur LANDLORD-DEFAULT-Bild anzeigen
-                    Center(
-                        child: GestureDetector(
-                          onTap: () {
-                            // LANDLORD-DEFAULT-Bild auch im Dialog anzeigen
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return Dialog(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: InteractiveViewer(
-                                      boundaryMargin: EdgeInsets.all(20.0),
-                                      minScale: 0.1,
-                                      maxScale: 4.0,
-                                      child: Image.asset(
-                                        'assets/landlord_placeholder.png', // ✅ Korrigiert
-                                        fit: BoxFit.contain,
-                                      ),
+                          ),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return Dialog(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: InteractiveViewer(
+                                    boundaryMargin: EdgeInsets.all(20.0),
+                                    minScale: 0.1,
+                                    maxScale: 4.0,
+                                    child: Image.asset(
+                                      'assets/landlord_placeholder.png',
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
-                                );
-                              },
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.asset(
-                              'assets/landlord_placeholder.png', // ✅ Korrigiert
-                              width: 200,
-                              height: 200,
-                              fit: BoxFit.cover,
-                            ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.asset(
+                            'assets/landlord_placeholder.png',
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-              ),
-              SizedBox(height: 16),
+                    ),
+            ),
+            SizedBox(height: 16),
 
-              // Vermieter Name
-              Text(
-                landlordData['name'] ?? 'Unbekannter Vermieter',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // VERMIETER-ADRESSE ALS CARD MIT LOCATION ICON
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              SizedBox(height: 8),
-
-              // Gesamtbewertung
-              Text(
-                'Gesamtbewertung:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Gesamtbewertung:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                  buildStarRating(overallRating),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Durchschnittsbewertungen
-              Text(
-                'Einzelbewertungen:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              ...categories.map((category) {
-                final fieldName = categoryMapping[category];
-                final averageRating = calculateAverageRating(reviews ?? [], fieldName!);
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(category, style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    buildStarRating(averageRating),
-                  ],
-                );
-              }).toList(),
-              SizedBox(height: 16),
-
-              // Wohnungen des Vermieters
-              _buildApartmentsSection(landlordDoc.id),
-              SizedBox(height: 16),
-
-              // Einzelbewertungen
-              Text(
-                'MIETERKOMMENTARE:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              if (reviews != null && reviews.isNotEmpty)
-                ...reviews.map((review) {
-                  final username = review['username'] ?? 'Anonymous';
-                  final timestamp = review['timestamp'];
-                  final formattedDate = _formatDate(timestamp);
-                  final comment = review['additionalComments'] ?? 'Kein Kommentar';
-                  final overallRating = calculateOverallRating([review]);
-
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: Theme.of(context).primaryColor,
+                        size: 20,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Benutzername und Datum
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                username,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              Text(
-                                formattedDate,
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
-                          ),
+            
                           SizedBox(height: 8),
-
-                          // Gesamtbewertung
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Gesamtbewertung:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                              buildStarRating(overallRating),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-
-                          // Kommentar
                           Text(
-                            'Kommentar:',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            comment,
-                            style: TextStyle(fontSize: 14, color: Colors.black87),
+                            landlordData['name'] ?? 'Unbekannter Vermieter',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                }).toList()
-              else
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+
+            // Gesamtbewertung und Preis-Leistungs-Verhältnis
+            Text(
+              'Gesamtbewertung:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Text(
-                  'Noch keine Bewertungen vorhanden.',
+                  'Durchschnitt:',
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
+                buildStarRating(overallRating),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Preis-/Leistung:',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                buildStarRating(valueForMoneyRating),
+              ],
+            ),
+            SizedBox(height: 16),
 
-              // Bewertung abgeben Button
-              SizedBox(height: 16),
-              ElevatedButton(
+            // Durchschnittsbewertungen
+            Text(
+              'Einzelbewertungen:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 12),
+            ...categories.map((category) {
+              final fieldName = categoryMapping[category];
+              final averageRating = calculateAverageRating(
+                reviews ?? [],
+                fieldName!,
+              );
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        category,
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      buildStarRating(averageRating),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ), // Verdoppelter Abstand (vorher 12, jetzt 24)
+                ],
+              );
+            }).toList(),
+            SizedBox(height: 16),
+
+            // Wohnungen des Vermieters
+            _buildApartmentsSection(landlordDoc.id),
+            SizedBox(height: 16),
+
+            // Einzelbewertungen
+            Text(
+              'MIETERKOMMENTARE:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            if (reviews != null && reviews.isNotEmpty)
+              ...reviews.map((review) {
+                // Extrahiere Review-Daten
+                final username = review['username'] ?? 'Anonymous';
+                final profileImageUrl = review['profileImageUrl'] ?? '';
+                final isAnonymous = review['isAnonymous'] ?? false;
+                final timestamp = review['timestamp'];
+                final formattedDate = _formatDate(timestamp);
+                final comment = review['additionalComments'] ?? 'Kein Kommentar';
+                final overallRating = calculateOverallRating([review]);
+
+                return Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Benutzerheader mit Profilbild
+                        Row(
+                          children: [
+                            // Profilbild
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: profileImageUrl.isNotEmpty && !isAnonymous
+                                  ? NetworkImage(profileImageUrl)
+                                  : null,
+                              child: profileImageUrl.isEmpty || isAnonymous
+                                  ? Icon(Icons.person, size: 20)
+                                  : null,
+                            ),
+                            SizedBox(width: 12),
+                            // Username und Datum
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isAnonymous ? 'Anonymous' : username,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    formattedDate,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Anonym-Indikator
+                            if (isAnonymous)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Anonym',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+
+                        // Gesamtbewertung
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Gesamtbewertung:',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            buildStarRating(overallRating),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+
+                        // Kommentar
+                        if (comment.isNotEmpty)
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              comment,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList()
+            else
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Icon(Icons.comment_outlined, size: 48, color: Colors.grey[400]),
+                      SizedBox(height: 16),
+                      Text(
+                        'Keine Bewertungen',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Dieser Vermieter wurde noch nicht bewertet.\nSeien Sie der Erste, der eine Bewertung abgibt!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Bewertung abgeben Button - MIT TENANT VERIFICATION
+            SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
                 onPressed: () async {
                   final landlordData = landlordDoc.data() as Map<String, dynamic>;
                   final landlordName = landlordData['name'] ?? 'Diesen Vermieter';
-                  
-                  final confirmed = await Navigator.push(
+
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TenantVerificationScreen(
-                        isApartment: false, // ✅ Korrekt für Vermieter
-                        targetName: landlordName,
-                      ),
+                      builder: (context) =>
+                          AddLandlordReviewScreen(landlordDoc: landlordDoc),
                     ),
                   );
-                  
-                  if (confirmed == true) {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddLandlordReviewScreen(landlordDoc: landlordDoc),
-                      ),
-                    );
-                    
-                    if (result == true) {
-                      // Aktualisierung erfolgt automatisch durch StreamBuilder
-                    }
+
+                  // Wenn eine Bewertung erfolgreich abgegeben wurde, aktualisiere die Ansicht
+                  if (result != null &&
+                      result is Map &&
+                      result['success'] == true) {
+                    // Die StreamBuilder aktualisieren automatisch
                   }
                 },
-                child: Text('Neue Bewertung verfassen'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Neue Bewertung verfassen',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // Methode für Wohnungsliste
+  // Methode zur Anzeige der Wohnungen des Vermieters
   Widget _buildApartmentsSection(String landlordId) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,7 +570,7 @@ class LandlordDetailScreen extends StatelessWidget {
           'Wohnungen dieses Vermieters:',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 12),
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('apartments')
@@ -421,11 +581,11 @@ class LandlordDetailScreen extends StatelessWidget {
               return Center(child: CircularProgressIndicator());
             }
 
-            if (snapshot.hasError) {
+            if (snapshot.hasError || !snapshot.hasData) {
               return Text('Fehler beim Laden der Wohnungen');
             }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            if (snapshot.data!.docs.isEmpty) {
               return Text(
                 'Keine Wohnungen gefunden',
                 style: TextStyle(color: Colors.grey),
@@ -442,9 +602,10 @@ class LandlordDetailScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final apartmentDoc = apartmentDocs[index];
                   final apartment = apartmentDoc.data() as Map<String, dynamic>;
-                  
+
                   // Adresse bereinigen
-                  final address = apartment['addresslong'] ?? 'Adresse nicht verfügbar';
+                  final address =
+                      apartment['addresslong'] ?? 'Adresse nicht verfügbar';
                   final imageUrl = apartment['imageUrls']?.isNotEmpty == true
                       ? apartment['imageUrls'][0]
                       : null;
@@ -462,7 +623,9 @@ class LandlordDetailScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ApartmentDetailScreen(apartmentDoc: apartmentDoc),
+                              builder: (context) => ApartmentDetailScreen(
+                                apartmentDoc: apartmentDoc,
+                              ),
                             ),
                           );
                         },
@@ -470,7 +633,9 @@ class LandlordDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(8),
+                              ),
                               child: imageUrl != null
                                   ? Image.network(
                                       imageUrl,
@@ -478,9 +643,8 @@ class LandlordDetailScreen extends StatelessWidget {
                                       width: double.infinity,
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) {
-                                        // APARTMENT-DEFAULT-BILD für Wohnungen
                                         return Image.asset(
-                                          'assets/apartment-placeholder.jpeg', // ✅ Korrekt für Wohnungen
+                                          'assets/apartment-placeholder.jpeg',
                                           height: 80,
                                           width: double.infinity,
                                           fit: BoxFit.cover,
@@ -488,7 +652,7 @@ class LandlordDetailScreen extends StatelessWidget {
                                       },
                                     )
                                   : Image.asset(
-                                      'assets/apartment-placeholder.jpeg', // ✅ Korrekt für Wohnungen
+                                      'assets/apartment-placeholder.jpeg',
                                       height: 80,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
@@ -497,10 +661,13 @@ class LandlordDetailScreen extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.all(6.0),
                               child: Text(
-                                address.length > 30 
-                                    ? '${address.substring(0, 30)}...' 
+                                address.length > 30
+                                    ? '${address.substring(0, 30)}...'
                                     : address,
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -525,15 +692,23 @@ class LandlordDetailScreen extends StatelessWidget {
       DateTime dateTime;
 
       if (timestamp is Timestamp) {
+        // Firestore Timestamp
         dateTime = timestamp.toDate();
       } else if (timestamp is String) {
+        // String-Datum
         dateTime = DateTime.parse(timestamp);
+      } else if (timestamp is DateTime) {
+        // DateTime-Objekt
+        dateTime = timestamp;
       } else {
+        // Fallback, falls das Datum ungültig ist
         return 'Unbekanntes Datum';
       }
 
+      // Formatieren des Datums
       return DateFormat('dd.MM.yyyy').format(dateTime);
     } catch (e) {
+      // Fehlerbehandlung bei ungültigen Daten
       print('Fehler beim Parsen des Datums: $e');
       return 'Unbekanntes Datum';
     }

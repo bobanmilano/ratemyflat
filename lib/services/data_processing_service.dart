@@ -7,6 +7,7 @@ class DataProcessingService {
     required Map<String, String> addressData,
     required List<String> imageUrls,
     required Map<String, int> ratings,
+    required String comments, // <- additionalComments aus dem Formular
     String? landlordId,
     String? landlordName,
   }) {
@@ -38,7 +39,7 @@ class DataProcessingService {
       'city': city,
       'country': country,
       'imageUrls': imageUrls,
-      'reviews': [_buildReviewData(ratings)],
+      'reviews': [_buildReviewData(ratings, comments)], // <- comments wird verwendet
       if (landlordId != null) 'landlordId': landlordId,
       if (landlordName != null) 'landlordName': landlordName,
     };
@@ -48,23 +49,24 @@ class DataProcessingService {
     required String name,
     required List<String> imageUrls,
     required Map<String, int> ratings,
-    required String comments,
+    required String comments, // <- additionalComments aus dem Formular
     List<String>? apartmentIds,
   }) {
     return {
       'name': name,
       'imageUrls': imageUrls,
       'username': 'Mieter',
-      'reviews': [_buildLandlordReviewData(ratings, comments)],
-      'createdAt': FieldValue.serverTimestamp(),
+      'reviews': [_buildLandlordReviewData(ratings, comments)], // <- comments wird verwendet
+      'createdAt': DateTime.now(),
       if (apartmentIds != null && apartmentIds.isNotEmpty) 'apartmentIds': apartmentIds,
     };
   }
 
-  Map<String, dynamic> _buildReviewData(Map<String, int> ratings) {
+  Map<String, dynamic> _buildReviewData(Map<String, int> ratings, String comments) {
     return {
       ...ratings.map((key, value) => MapEntry(key, value)),
       'timestamp': DateTime.now().toIso8601String(),
+      'additionalComments': comments.trim(), // <- comments aus dem Formular
       'username': 'Mieter',
     };
   }
@@ -73,7 +75,7 @@ class DataProcessingService {
     return {
       ...ratings.map((key, value) => MapEntry(key, value)),
       'timestamp': DateTime.now().toIso8601String(),
-      'additionalComments': comments.trim(),
+      'additionalComments': comments.trim(), // <- comments aus dem Formular
       'username': 'Mieter',
     };
   }

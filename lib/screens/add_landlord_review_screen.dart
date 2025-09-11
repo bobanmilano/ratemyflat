@@ -1,9 +1,12 @@
 // lib/screens/add_landlord_review_screen.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 
-import 'package:immo_app/screens/landlord_details_screen.dart'; // Für Zufallsnamen
+import 'package:immo_app/screens/landlord_details_screen.dart';
+import 'package:immo_app/screens/tenant_verification_screen.dart';
+import 'package:immo_app/services/rate_limit_service.dart'; // Für Zufallsnamen
 
 class AddLandlordReviewScreen extends StatefulWidget {
   final DocumentSnapshot landlordDoc;
@@ -30,13 +33,63 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
     'depositHandling': 1.0, // Kaution
   };
   final TextEditingController _commentController = TextEditingController();
-  String _username = '';
+  bool _isAnonymous = false; // Neue Variable für Anonymität
+
+  // User-Daten
+  String _userId = 'anonymous';
+  String _username = 'Anonymous';
+  String _profileImageUrl = '';
 
   @override
   void initState() {
     super.initState();
-    // Generiere einen zufälligen Benutzernamen beim Start
-    _username = _generateRandomUsername();
+    _loadCurrentUser();
+  }
+
+  // Lade die Daten des eingeloggten Users
+  Future<void> _loadCurrentUser() async {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      setState(() {
+        _userId = currentUser.uid;
+      });
+
+      try {
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>?;
+          setState(() {
+            _username =
+                userData?['username'] ??
+                currentUser.displayName ??
+                currentUser.email?.split('@')[0] ??
+                'Mieter';
+            _profileImageUrl = userData?['profileImageUrl'] ?? '';
+          });
+        } else {
+          // Fallback zu Firebase Auth Daten
+          setState(() {
+            _username =
+                currentUser.displayName ??
+                currentUser.email?.split('@')[0] ??
+                'Mieter';
+          });
+        }
+      } catch (e) {
+        print('Fehler beim Laden der User-Daten: $e');
+        // Fallback
+        setState(() {
+          _username =
+              currentUser.displayName ??
+              currentUser.email?.split('@')[0] ??
+              'Mieter';
+        });
+      }
+    }
   }
 
   // Methode zum Aktualisieren der Bewertung für eine Kategorie
@@ -70,29 +123,6 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
     );
   }
 
-  // Methode zum Generieren eines zufälligen Benutzernamens
-  String _generateRandomUsername() {
-    final random = Random();
-    final adjectives = [
-      'Cool',
-      'Happy',
-      'Lucky',
-      'Smart',
-      'Brave',
-      'Fair',
-      'Honest',
-    ];
-    final nouns = [
-      'Tenant',
-      'Reviewer',
-      'User',
-      'Mieter',
-      'Bewerter',
-      'Nutzer',
-    ];
-    return '${adjectives[random.nextInt(adjectives.length)]}${nouns[random.nextInt(nouns.length)]}';
-  }
-
   // Validierung der Eingabefelder
   bool _validateFields() {
     final String comment = _commentController.text.trim();
@@ -116,6 +146,24 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
   }
 
   void _submitReview() async {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final canReview = await RateLimitService.canUserSubmitReview(
+      currentUser.uid,
+    );
+    if (!canReview) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Bewertungslimit erreicht: Maximal 8 Bewertungen pro Tag',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     // Validiere die Eingaben
     if (!_validateFields()) {
       final missingFields = _getMissingFields();
@@ -130,31 +178,20 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
       return;
     }
 
-  // 2. Tenant Verification während des Speicherns
-  final confirmed = await showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => AlertDialog(
-      title: Text('Bestätigung'),
-      content: Text('Bestätigen Sie, dass Sie Kunde dieses Vermieters waren '
-                   'und Ihre Angaben wahrheitsgemäß sind?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text('Abbrechen'),
+    final confirmed = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TenantVerificationScreen(
+          isApartment: false, // ✅ Korrekt für Vermieter
+          targetName:
+              "${(widget.landlordDoc.data() as Map<String, dynamic>)['name'] ?? ''}",
         ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text('Bestätigen'),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
 
-  if (confirmed != true) return; // User hat abgebrochen
+    if (confirmed != true) return; // User hat abgebrochen
 
     try {
-      // Hole die Firestore-Dokument-ID des Vermieters
       final landlordId = widget.landlordDoc.id;
 
       if (landlordId.isEmpty) {
@@ -166,25 +203,30 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
 
       print('Updating landlord with ID: $landlordId');
 
+      // Erstelle die Review-Daten mit echten User-Informationen
+      final reviewData = {
+        'userId': _userId,
+        'username': _isAnonymous ? 'Anonymous' : _username,
+        'profileImageUrl': _isAnonymous ? '' : _profileImageUrl,
+        'isAnonymous': _isAnonymous,
+        'timestamp': DateTime.now(),
+        'additionalComments': _commentController.text.trim(),
+        // Alle Bewertungskategorien
+        'communication': _ratings['communication'],
+        'helpfulness': _ratings['helpfulness'],
+        'fairness': _ratings['fairness'],
+        'transparency': _ratings['transparency'],
+        'responseTime': _ratings['responseTime'],
+        'respect': _ratings['respect'],
+        'renovationManagement': _ratings['renovationManagement'],
+        'leaseAgreement': _ratings['leaseAgreement'],
+        'operatingCosts': _ratings['operatingCosts'],
+        'depositHandling': _ratings['depositHandling'],
+      };
+
       // Speichere die Bewertung im Vermieter-Dokument
       await _firestore.collection('landlords').doc(landlordId).set({
-        'reviews': FieldValue.arrayUnion([
-          {
-            'communication': _ratings['communication'],
-            'helpfulness': _ratings['helpfulness'],
-            'fairness': _ratings['fairness'],
-            'transparency': _ratings['transparency'],
-            'responseTime': _ratings['responseTime'],
-            'respect': _ratings['respect'],
-            'renovationManagement': _ratings['renovationManagement'],
-            'leaseAgreement': _ratings['leaseAgreement'],
-            'operatingCosts': _ratings['operatingCosts'],
-            'depositHandling': _ratings['depositHandling'],
-            'additionalComments': _commentController.text.trim(),
-            'username': _username,
-            'timestamp': Timestamp.now(),
-          },
-        ]),
+        'reviews': FieldValue.arrayUnion([reviewData]),
       }, SetOptions(merge: true));
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -229,8 +271,6 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
       'leaseAgreement': 'Mietvertrag',
       'operatingCosts': 'Betriebskosten',
       'depositHandling': 'Kaution',
-      'additionalComments': 'Zusätzliche Kommentare',
-      'username': 'Benutzername',
     };
 
     // Extrahiere den Vermieter-Namen aus den Daten
@@ -249,6 +289,57 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16),
+
+            // User-Info Card (wenn nicht anonym)
+            if (!_isAnonymous)
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      // Profilbild
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: _profileImageUrl.isNotEmpty
+                            ? NetworkImage(_profileImageUrl)
+                            : null,
+                        child: _profileImageUrl.isEmpty
+                            ? Icon(Icons.person, size: 20)
+                            : null,
+                      ),
+                      SizedBox(width: 12),
+                      // Username
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bewertung von:',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              _username,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            SizedBox(height: 16),
+
             ..._ratings.keys.map((key) {
               final categoryName = categoryMapping[key];
               return Column(
@@ -268,6 +359,7 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
                 ],
               );
             }).toList(),
+
             // Verbessertes Kommentarfeld
             Text(
               'Zusätzliche Kommentare *',
@@ -290,14 +382,96 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
               ),
             ),
             SizedBox(height: 16),
+
+            // Anonymität-Option
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: Text('Anonym bewerten'),
+                      subtitle: Text(
+                        _isAnonymous
+                            ? 'Ihr Name und Profilbild werden nicht angezeigt'
+                            : 'Ihr Name und Profilbild werden öffentlich sichtbar',
+                      ),
+                      value: _isAnonymous,
+                      onChanged: (value) {
+                        setState(() {
+                          _isAnonymous = value ?? false;
+                        });
+                      },
+                      secondary: Icon(
+                        _isAnonymous ? Icons.visibility_off : Icons.visibility,
+                        color: _isAnonymous
+                            ? Colors.grey
+                            : Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    if (_isAnonymous)
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info, color: Colors.orange, size: 16),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Ihre Bewertung wird anonym veröffentlicht. Sie hilft anderen Mietern, ohne Ihre Identität preiszugeben.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 16),
             Text(
               '* Pflichtfeld',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _submitReview,
-              child: Text('Bewertung absenden'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submitReview,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Bewertung absenden',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

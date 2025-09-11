@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:immo_app/firebase_options.dart';
@@ -5,11 +6,19 @@ import 'package:immo_app/screens/about_screen.dart';
 import 'package:immo_app/screens/apartment_list_screen.dart';
 import 'package:immo_app/screens/landlord_list_screen.dart';
 import 'package:immo_app/screens/settings_screen.dart';
+import 'package:immo_app/screens/login_screen.dart'; // Neuer Import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await FirebaseInitializer.initialize();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialisiert erfolgreich!');
+  } catch (e) {
+    print('Fehler bei Firebase-Initialisierung: $e');
+  }
 
   runApp(ImmoRateApp());
 }
@@ -30,6 +39,7 @@ class FirebaseInitializer {
     }
   }
 }
+
 class ImmoRateApp extends StatelessWidget {
   const ImmoRateApp({super.key});
 
@@ -40,7 +50,46 @@ class ImmoRateApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(),
+      home: AuthWrapper(), // Neue Wrapper-Widget für Auth-Check
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+// Neues Widget für die Authentifizierungsprüfung
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Prüfe den Authentifizierungsstatus
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Ladeanzeige während des Auth-Checks
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Lade Authentifizierungsstatus...'),
+                ],
+              ),
+            ),
+          );
+        }
+        
+        if (snapshot.hasData) {
+          // Benutzer ist eingeloggt
+          return HomeScreen();
+        } else {
+          // Kein eingeloggter Benutzer - zeige Login-Screen
+          return LoginScreen();
+        }
+      },
     );
   }
 }

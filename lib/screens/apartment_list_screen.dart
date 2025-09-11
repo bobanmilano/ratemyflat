@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/screens/add_apartment_screen.dart';
 import 'package:immo_app/screens/apartment_details_screen.dart';
-import 'package:immo_app/screens/tenant_verification_screen.dart';
 
 class ApartmentListScreen extends StatefulWidget {
   @override
@@ -13,8 +12,13 @@ class ApartmentListScreen extends StatefulWidget {
 class _ApartmentListScreenState extends State<ApartmentListScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _selectedCity;
+  String _searchQuery = '';
   List<String> _cities = [];
   bool _isLoadingCities = false;
+  
+  // Sortieroptionen
+  String _sortBy = 'address'; // 'address', 'rating', 'newest'
+  bool _sortAscending = true;
 
   // Pagination-Variablen
   final int _limit = 20;
@@ -150,14 +154,59 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
       Query query = _firestore.collection('apartments').limit(_limit);
 
       // Stadtfilter anwenden
-      if (_selectedCity != null) {
+      if (_selectedCity != null && _selectedCity!.isNotEmpty) {
         query = query.where('city', isEqualTo: _selectedCity);
       }
 
       final snapshot = await query.get();
 
+      // Client-seitige Suche und Sortierung
+      List<DocumentSnapshot> filteredApartments = snapshot.docs;
+
+      // Client-seitige Suche
+      if (_searchQuery.isNotEmpty) {
+        filteredApartments = filteredApartments.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final address = (data['addresslong'] ?? '').toString().toLowerCase();
+          final search = _searchQuery.toLowerCase();
+          return address.contains(search);
+        }).toList();
+      }
+
+      // Sortierung anwenden
+      filteredApartments.sort((a, b) {
+        final dataA = a.data() as Map<String, dynamic>;
+        final dataB = b.data() as Map<String, dynamic>;
+        
+        switch (_sortBy) {
+          case 'address':
+            final addressA = dataA['addresslong'] ?? '';
+            final addressB = dataB['addresslong'] ?? '';
+            return _sortAscending 
+                ? addressA.toString().compareTo(addressB.toString())
+                : addressB.toString().compareTo(addressA.toString());
+                
+          case 'rating':
+            final ratingA = calculateOverallRating(dataA['reviews'] ?? []);
+            final ratingB = calculateOverallRating(dataB['reviews'] ?? []);
+            return _sortAscending 
+                ? ratingB.compareTo(ratingA) // Höchste Bewertung zuerst
+                : ratingA.compareTo(ratingB);
+                
+          case 'newest':
+            final dateA = (dataA['createdAt'] as Timestamp?)?.toDate() ?? DateTime(0);
+            final dateB = (dataB['createdAt'] as Timestamp?)?.toDate() ?? DateTime(0);
+            return _sortAscending 
+                ? dateB.compareTo(dateA) // Neueste zuerst
+                : dateA.compareTo(dateB);
+                
+          default:
+            return 0;
+        }
+      });
+
       setState(() {
-        _apartments = snapshot.docs;
+        _apartments = filteredApartments;
         _lastDocument = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
         _hasMore = snapshot.docs.length == _limit;
         _isLoading = false;
@@ -172,7 +221,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
 
   // Weitere Apartments laden (Pagination)
   Future<void> _loadMoreApartments() async {
-    if (_isLoading || !_hasMore) return;
+    if (_isLoading || !_hasMore || _lastDocument == null) return;
 
     setState(() {
       _isLoading = true;
@@ -184,15 +233,28 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
           .startAfterDocument(_lastDocument!)
           .limit(_limit);
 
-      // Stadtfilter anwenden
-      if (_selectedCity != null) {
+      // Stadtfilter auch beim Pagination anwenden
+      if (_selectedCity != null && _selectedCity!.isNotEmpty) {
         query = query.where('city', isEqualTo: _selectedCity);
       }
 
       final snapshot = await query.get();
 
+      // Client-seitige Suche und Sortierung für neue Daten
+      List<DocumentSnapshot> filteredApartments = snapshot.docs;
+
+      // Client-seitige Suche
+      if (_searchQuery.isNotEmpty) {
+        filteredApartments = filteredApartments.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final address = (data['addresslong'] ?? '').toString().toLowerCase();
+          final search = _searchQuery.toLowerCase();
+          return address.contains(search);
+        }).toList();
+      }
+
       setState(() {
-        _apartments.addAll(snapshot.docs);
+        _apartments.addAll(filteredApartments);
         _lastDocument = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
         _hasMore = snapshot.docs.length == _limit;
         _isLoading = false;
@@ -270,6 +332,9 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
       _loadCities();
     }
 
+    // Lokale Variable für die Dialog-Auswahl
+    String? selectedCityInDialog = _selectedCity;
+
     showDialog(
       context: context,
       builder: (context) {
@@ -301,7 +366,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                     )
                   else
                     DropdownButtonFormField<String>(
-                      value: _selectedCity,
+                      value: selectedCityInDialog,
                       hint: Text('Stadt auswählen (${_cities.length})'),
                       items: _cities
                           .map(
@@ -313,7 +378,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                           .toList(),
                       onChanged: (value) {
                         setState(() {
-                          _selectedCity = value;
+                          selectedCityInDialog = value;
                         });
                       },
                     ),
@@ -329,6 +394,8 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                 ),
                 TextButton(
                   onPressed: () {
+                    // WICHTIG: Übergib den ausgewählten Wert an _applyFilter
+                    _applyFilter(selectedCityInDialog);
                     Navigator.pop(context);
                   },
                   child: Text('Anwenden'),
@@ -338,6 +405,100 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
           },
         );
       },
+    );
+  }
+
+  // Sortier-Dialog anzeigen
+  void _showSortDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Sortieren nach'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: Text('Adresse (A-Z)'),
+                value: 'address',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                    _sortAscending = true;
+                  });
+                  Navigator.pop(context);
+                  _loadApartments();
+                },
+              ),
+              RadioListTile<String>(
+                title: Text('Bewertung (höchste)'),
+                value: 'rating',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                    _sortAscending = false;
+                  });
+                  Navigator.pop(context);
+                  _loadApartments();
+                },
+              ),
+              RadioListTile<String>(
+                title: Text('Neueste zuerst'),
+                value: 'newest',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                    _sortAscending = false;
+                  });
+                  Navigator.pop(context);
+                  _loadApartments();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Suchleiste
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Straße oder Adresse suchen...',
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                    _loadApartments();
+                  },
+                )
+              : null,
+        ),
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value;
+          });
+          // Debounce für bessere Performance
+          Future.delayed(Duration(milliseconds: 300), () {
+            if (value == _searchQuery) {
+              _loadApartments();
+            }
+          });
+        },
+      ),
     );
   }
 
@@ -357,9 +518,18 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
         children: [
           Text(
             _selectedCity != null
-                ? 'Keine Apartments in $_selectedCity gefunden'
-                : 'Keine Apartments gefunden',
+                ? 'Keine Wohnungen in $_selectedCity gefunden'
+                : _searchQuery.isNotEmpty
+                    ? 'Keine Wohnungen für "$_searchQuery" gefunden'
+                    : 'Keine Wohnungen gefunden',
             textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Fügen Sie die erste Wohnung hinzu,\n'
+            'um Bewertungen zu teilen.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey),
           ),
         ],
       ),
@@ -471,6 +641,10 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
         title: Text('Apartments'),
         actions: [
           IconButton(
+            icon: Icon(Icons.sort),
+            onPressed: _showSortDialog,
+          ),
+          IconButton(
             icon: Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
           ),
@@ -478,6 +652,9 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
       ),
       body: Column(
         children: [
+          // Suchleiste
+          _buildSearchBar(),
+          
           // Aktive Filter anzeigen
           if (_selectedCity != null)
             Container(
@@ -533,29 +710,15 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Zeige Tenant Verification vor dem Formular
-          final confirmed = await Navigator.push(
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => TenantVerificationScreen(
-                isApartment: true,
-                targetName: 'Neue Wohnung',
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => AddApartmentScreen()),
           );
-
-          // Nur wenn bestätigt, zeige das Formular
-          if (confirmed == true) {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddApartmentScreen()),
-            );
-            
-            // Wenn eine neue Wohnung erfolgreich erstellt wurde, aktualisiere die Liste
-            if (result != null && result is Map && result['success'] == true) {
-              // Force refresh der Liste
-              _applyFilter(_selectedCity);
-            }
+          
+          // Wenn eine neue Wohnung erfolgreich erstellt wurde, aktualisiere die Liste
+          if (result != null && result is Map && result['success'] == true) {
+            // Force refresh der Liste
+            _applyFilter(_selectedCity);
           }
         },
         child: Icon(Icons.add),

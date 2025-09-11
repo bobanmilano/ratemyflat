@@ -64,7 +64,7 @@ Mietvertrag: Ist der Mietvertrag fair und transparent?
 - avoid creating duplicates based on the precise address, show message "this apartment exists" and show link to it.
 - define "must have" attributes in all forms 
 - default image in the apartment details screen
-
+- filter in den wohnungen funktioniert nicht mehr
 
 
 
@@ -74,6 +74,8 @@ Push-Benachrichtigungen bei neuen Bewertungen
 Statistiken für Vermieter/Wohnungen
 Export-Funktion für Bewertungsdaten
 Social-Sharing von positiven Bewertungen
+
+
 Performance-Optimierungen:
 Caching für häufig abgerufene Daten
 Lazy Loading für Bilder

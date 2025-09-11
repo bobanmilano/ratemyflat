@@ -11,27 +11,7 @@ class ApartmentDetailScreen extends StatelessWidget {
 
   ApartmentDetailScreen({required this.apartmentDoc});
 
-  // Methode zur Berechnung der Durchschnittsbewertung für eine Kategorie
-  double calculateAverageRating(List<dynamic> reviews, String category) {
-    if (reviews == null || reviews.isEmpty) {
-      return 0.0; // Keine Bewertungen vorhanden
-    }
-
-    double totalSum = 0;
-    int count = 0;
-
-    for (var review in reviews) {
-      if (review is Map<String, dynamic>) {
-        final rating = review[category]?.toDouble() ?? 0.0;
-        totalSum += rating;
-        count++;
-      }
-    }
-
-    return count > 0 ? totalSum / count : 0.0;
-  }
-
-  // Methode zur Berechnung der Gesamtbewertung (Durchschnitt aller Kategorien)
+  // Methode zur Berechnung der Durchschnittsbewertung aus den Reviews
   double calculateOverallRating(List<dynamic> reviews) {
     if (reviews == null || reviews.isEmpty) {
       return 0.0; // Keine Bewertungen vorhanden
@@ -66,8 +46,36 @@ class ApartmentDetailScreen extends StatelessWidget {
     return totalCount > 0 ? totalSum / totalCount : 0.0;
   }
 
+  // Methode zur Berechnung der Durchschnittsbewertung für eine Kategorie
+  double calculateAverageRating(List<dynamic> reviews, String category) {
+    if (reviews == null || reviews.isEmpty) {
+      return 0.0; // Keine Bewertungen vorhanden
+    }
+
+    double totalSum = 0;
+    int count = 0;
+
+    for (var review in reviews) {
+      if (review is Map<String, dynamic>) {
+        final rating = review[category]?.toDouble() ?? 0.0;
+        totalSum += rating;
+        count++;
+      }
+    }
+
+    return count > 0 ? totalSum / count : 0.0;
+  }
+
+  // Methode zum Entfernen des letzten Beistrichs aus der Adresse
+  String cleanAddress(String address) {
+    if (address.endsWith(',')) {
+      return address.substring(0, address.length - 1);
+    }
+    return address;
+  }
+
   // Methode zur Anzeige der Sternebewertung
-  Widget buildStarRating(double rating) {
+  Widget buildStarRating(double rating, String label) {
     int fullStars = rating.floor();
     double fractionalPart = rating - fullStars;
 
@@ -81,12 +89,31 @@ class ApartmentDetailScreen extends StatelessWidget {
 
     int emptyStars = 5 - fullStars - (fractionalPart > 0 ? 1 : 0);
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (int i = 0; i < fullStars; i++) Icon(Icons.star, color: Colors.orange, size: 24),
-        if (fractionalPart == 0.5) Icon(Icons.star_half, color: Colors.orange, size: 24),
-        for (int i = 0; i < emptyStars; i++) Icon(Icons.star_border, color: Colors.grey, size: 24),
+        if (label.isNotEmpty)
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        if (label.isNotEmpty)
+          SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < fullStars; i++)
+              Icon(Icons.star, color: Colors.orange, size: 22),
+            if (fractionalPart == 0.5)
+              Icon(Icons.star_half, color: Colors.orange, size: 22),
+            for (int i = 0; i < emptyStars; i++)
+              Icon(Icons.star_border, color: Colors.grey, size: 22),
+          ],
+        ),
       ],
     );
   }
@@ -125,8 +152,9 @@ class ApartmentDetailScreen extends StatelessWidget {
     final apartmentData = apartmentDoc.data() as Map<String, dynamic>;
     final List<dynamic>? reviews = apartmentData['reviews'];
     final overallRating = calculateOverallRating(reviews ?? []);
-    final valueForMoneyRating = calculateAverageRating(reviews ?? [], 'valueForMoney');
-    final landlordRating = calculateAverageRating(reviews ?? [], 'landlord');
+    final valueForMoneyRating = reviews != null && reviews.isNotEmpty
+        ? reviews[0]['valueForMoney']?.toDouble() ?? 0.0
+        : 0.0;
 
     // Alle Bewertungskategorien
     final categories = [
@@ -167,9 +195,7 @@ class ApartmentDetailScreen extends StatelessWidget {
     final hasImages = imageUrls != null && imageUrls.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Apartment Details'),
-      ),
+      appBar: AppBar(title: Text('Apartment Details'), centerTitle: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -216,7 +242,7 @@ class ApartmentDetailScreen extends StatelessWidget {
                         },
                       )
                     : // Keine Bilder vorhanden - nur Default-Bild anzeigen
-                    Center(
+                      Center(
                         child: GestureDetector(
                           onTap: () {
                             // Default-Bild auch im Dialog anzeigen
@@ -256,20 +282,58 @@ class ApartmentDetailScreen extends StatelessWidget {
               ),
               SizedBox(height: 16),
 
-              // Address
-              Text(
-                apartmentData['addresslong'] ?? 'Keine Adresse verfügbar',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // ADRESSE ALS CARD MIT LOCATION ICON
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.location_on,
+                          color: Theme.of(context).primaryColor,
+                          size: 20,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 4),
+                            Text(
+                              apartmentData['addresslong'] ??
+                                  'Keine Adresse verfügbar',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               SizedBox(height: 16),
+              SizedBox(height: 8),
 
               // Vermieter-Link (wenn vorhanden)
-              if (apartmentData['landlordId'] != null) ...[
-                Text(
-                  'Vermietet von:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
+              if (apartmentData['landlordId'] != null)
                 StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('landlords')
@@ -280,35 +344,67 @@ class ApartmentDetailScreen extends StatelessWidget {
                       return Center(child: CircularProgressIndicator());
                     }
 
-                    if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                    if (snapshot.hasError ||
+                        !snapshot.hasData ||
+                        !snapshot.data!.exists) {
                       return Text('Vermieter nicht gefunden');
                     }
 
                     final landlordDoc = snapshot.data!;
-                    final landlordData = landlordDoc.data() as Map<String, dynamic>;
-                    final landlordName = landlordData['name'] ?? 'Unbekannter Vermieter';
+                    final landlordData =
+                        landlordDoc.data() as Map<String, dynamic>;
+                    final landlordName =
+                        landlordData['name'] ?? 'Unbekannter Vermieter';
 
                     return Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
                         contentPadding: EdgeInsets.all(12),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey[300],
-                          child: Icon(Icons.person, color: Colors.grey[600]),
+                        leading: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            color: Theme.of(context).primaryColor,
+                            size: 20,
+                          ),
                         ),
                         title: Text(
-                          landlordName,
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          'Vermietet von:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
-                        trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                        subtitle: Text(
+                          landlordName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Theme.of(context).primaryColor,
+                        ),
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => LandlordDetailScreen(landlordDoc: landlordDoc),
+                              builder: (context) => LandlordDetailScreen(
+                                landlordDoc: landlordDoc,
+                              ),
                             ),
                           );
                         },
@@ -316,170 +412,416 @@ class ApartmentDetailScreen extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: 16),
-              ],
+              SizedBox(height: 16),
 
-              // Gesamtbewertung und Preis-Leistungs-Verhältnis
+              // Hauptüberschrift wie in AboutScreen
               Text(
-                'Gesamtbewertung:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Gesamtbewertung:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                  buildStarRating(overallRating),
-                ],
-              ),
-              SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Preis-/Leistung:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                  buildStarRating(valueForMoneyRating),
-                ],
+                'Bewertungsdetails',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
               SizedBox(height: 16),
+
+              // Gesamtbewertung und Preis-Leistungs-Verhältnis
+              _buildInfoCard(
+                context,
+                icon: Icons.star,
+                title: 'Gesamtbewertung',
+                content: 'Durchschnittliche Bewertung aller Kategorien',
+                rating: overallRating,
+              ),
+              SizedBox(height: 16),
+
+              _buildInfoCard(
+                context,
+                icon: Icons.euro,
+                title: 'Preis-/Leistung',
+                content: 'Verhältnis von Preis zu Leistung',
+                rating: valueForMoneyRating,
+              ),
+              SizedBox(height: 24),
 
               // Durchschnittsbewertungen
               Text(
                 'Einzelbewertungen:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 16),
               ...categories.map((category) {
                 final fieldName = categoryMapping[category];
-                final averageRating = calculateAverageRating(reviews ?? [], fieldName!);
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(category, style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    buildStarRating(averageRating),
-                  ],
+                final averageRating = calculateAverageRating(
+                  reviews ?? [],
+                  fieldName!,
+                );
+                return _buildRatingCard(
+                  context,
+                  title: category,
+                  rating: averageRating,
                 );
               }).toList(),
-              SizedBox(height: 16),
+              SizedBox(height: 24),
 
               // Einzelbewertungen
               Text(
                 'MIETERKOMMENTARE:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 16),
               if (reviews != null && reviews.isNotEmpty)
                 ...reviews.map((review) {
+                  // Extrahiere Review-Daten
                   final username = review['username'] ?? 'Anonymous';
+                  final profileImageUrl = review['profileImageUrl'] ?? '';
+                  final isAnonymous = review['isAnonymous'] ?? false;
                   final timestamp = review['timestamp'];
                   final formattedDate = _formatDate(timestamp);
                   final comment = review['additionalComments'] ?? 'Kein Kommentar';
+                  
+                  // Berechne Bewertungen für diese Review
                   final overallRating = calculateOverallRating([review]);
                   final valueForMoneyRating = review['valueForMoney']?.toDouble() ?? 0.0;
                   final landlordRating = review['landlord']?.toDouble() ?? 0.0;
 
                   return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     margin: EdgeInsets.symmetric(vertical: 8),
                     child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Benutzername und Datum
+                          // Benutzerheader mit Profilbild
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                username,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              // Profilbild
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundImage: profileImageUrl.isNotEmpty && !isAnonymous
+                                    ? NetworkImage(profileImageUrl)
+                                    : null,
+                                child: profileImageUrl.isEmpty || isAnonymous
+                                    ? Icon(Icons.person, size: 20)
+                                    : null,
                               ),
-                              Text(
-                                formattedDate,
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                              SizedBox(width: 12),
+                              // Username und Datum
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isAnonymous ? 'Anonymous' : username,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      formattedDate,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              // Anonym-Indikator
+                              if (isAnonymous)
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Anonym',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                             ],
+                          ),
+                          SizedBox(height: 12),
+
+                          // Bewertungen
+                          _buildReviewRating(
+                            context,
+                            'Gesamtbewertung',
+                            overallRating,
                           ),
                           SizedBox(height: 8),
-
-                          // Gesamtbewertung
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Gesamtbewertung:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                              buildStarRating(overallRating),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-
-                          // Preis-Leistungs-Verhältnis
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Preis-/Leistung:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                              buildStarRating(valueForMoneyRating),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-
-                          // Vermieter-Bewertung
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Vermieter:', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                              buildStarRating(landlordRating),
-                            ],
+                          _buildReviewRating(
+                            context,
+                            'Preis-/Leistung',
+                            valueForMoneyRating,
                           ),
                           SizedBox(height: 8),
+                          _buildReviewRating(
+                            context,
+                            'Vermieter',
+                            landlordRating,
+                          ),
+                          SizedBox(height: 12),
 
                           // Kommentar
-                          Text(
-                            'Kommentar:',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            comment,
-                            style: TextStyle(fontSize: 14, color: Colors.black87),
-                          ),
+                          if (comment.isNotEmpty)
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[50],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                comment,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   );
                 }).toList()
               else
-                Text(
-                  'No reviews available.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                _buildEmptyStateCard(
+                  context,
+                  icon: Icons.comment_outlined,
+                  title: 'Keine Bewertungen',
+                  message:
+                      'Dieses Apartment wurde noch nicht bewertet.\nSeien Sie der Erste, der eine Bewertung abgibt!',
                 ),
 
-              // Bewertung abgeben Button
-              SizedBox(height: 16),
-              ElevatedButton(
+              // Bewertung abgeben Button - MIT Tenant Verification
+              SizedBox(height: 24),
+              _buildActionCard(
+                context,
+                icon: Icons.add_comment,
+                title: 'Neue Bewertung erstellen',
+                message: 'Teilen Sie Ihre Erfahrung mit anderen Mietern',
+                buttonText: 'Bewertung erstellen',
                 onPressed: () async {
-                  final confirmed = await Navigator.push(
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TenantVerificationScreen(
-                        isApartment: true,
-                        targetName: apartmentData['addresslong'] ?? 'Diese Wohnung',
-                      ),
+                      builder: (context) =>
+                          AddApartmentReviewScreen(apartmentDoc: apartmentDoc),
                     ),
                   );
-                  
-                  if (confirmed == true) {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddApartmentReviewScreen(apartmentDoc: apartmentDoc),
-                      ),
-                    );
-                    
-                    // Wenn eine Bewertung erfolgreich abgegeben wurde, aktualisiere die Ansicht
-                    if (result == true) {
-                      // Die StreamBuilder aktualisieren automatisch
-                    }
+
+                  // Wenn eine Bewertung erfolgreich abgegeben wurde, aktualisiere die Liste
+                  if (result != null &&
+                      result is Map &&
+                      result['success'] == true) {
+                    // Die StreamBuilder aktualisieren automatisch
                   }
                 },
-                child: Text('Neue Bewertung verfassen'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Neue Helper-Methoden für konsistentes Design
+  Widget _buildInfoCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String content,
+    required double rating,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Theme.of(context).primaryColor,
+                    size: 20,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              content,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 12),
+            Center(child: buildStarRating(rating, '')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRatingCard(
+    BuildContext context, {
+    required String title,
+    required double rating,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: EdgeInsets.all(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Center(child: buildStarRating(rating, '')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReviewRating(BuildContext context, String title, double rating) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+        buildStarRating(rating, ''),
+      ],
+    );
+  }
+
+  Widget _buildEmptyStateCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String message,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(icon, size: 48, color: Colors.grey[400]),
+            SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String message,
+    required String buttonText,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: double.infinity, // Volle Breite
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Icon(icon, size: 40, color: Theme.of(context).primaryColor),
+              SizedBox(height: 16),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: onPressed,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: Text(buttonText, style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
@@ -499,6 +841,9 @@ class ApartmentDetailScreen extends StatelessWidget {
       } else if (timestamp is String) {
         // String-Datum
         dateTime = DateTime.parse(timestamp);
+      } else if (timestamp is DateTime) {
+        // DateTime-Objekt
+        dateTime = timestamp;
       } else {
         // Fallback, falls das Datum ungültig ist
         return 'Unbekanntes Datum';

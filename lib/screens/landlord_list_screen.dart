@@ -462,17 +462,9 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final confirmed = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TenantVerificationScreen(
-                isApartment: false,
-                targetName: 'Neuer Vermieter',
-              ),
-            ),
-          );
 
-          if (confirmed == true) {
+
+         // if (confirmed == true) {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => AddLandlordScreen()),
@@ -483,7 +475,7 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
               // Force refresh der Liste
               _applyFilter(_searchQuery);
             }
-          }
+          //}
         },
         child: Icon(Icons.add),
         tooltip: 'Vermieter hinzufügen',
