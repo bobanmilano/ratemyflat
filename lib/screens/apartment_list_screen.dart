@@ -438,7 +438,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                 onChanged: (value) {
                   setState(() {
                     _sortBy = value!;
-                    _sortAscending = false;
+                    _sortAscending = true;
                   });
                   Navigator.pop(context);
                   _loadApartments();
@@ -451,7 +451,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                 onChanged: (value) {
                   setState(() {
                     _sortBy = value!;
-                    _sortAscending = false;
+                    _sortAscending = true;
                   });
                   Navigator.pop(context);
                   _loadApartments();

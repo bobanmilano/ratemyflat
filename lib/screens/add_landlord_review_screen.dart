@@ -145,117 +145,150 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
     return missing;
   }
 
-  void _submitReview() async {
-    final User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return;
+void _submitReview() async {
+  final User? currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser == null) return;
 
-    final canReview = await RateLimitService.canUserSubmitReview(
-      currentUser.uid,
-    );
-    if (!canReview) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Bewertungslimit erreicht: Maximal 8 Bewertungen pro Tag',
-          ),
-          backgroundColor: Colors.orange,
+  final canReview = await RateLimitService.canUserSubmitReview(
+    currentUser.uid,
+  );
+  if (!canReview) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Bewertungslimit erreicht: Maximal 8 Bewertungen pro Tag',
         ),
-      );
-      return;
-    }
-
-    // Validiere die Eingaben
-    if (!_validateFields()) {
-      final missingFields = _getMissingFields();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Bitte korrigieren Sie folgende Felder:\n• ${missingFields.join('\n• ')}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final confirmed = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TenantVerificationScreen(
-          isApartment: false, // ✅ Korrekt für Vermieter
-          targetName:
-              "${(widget.landlordDoc.data() as Map<String, dynamic>)['name'] ?? ''}",
-        ),
+        backgroundColor: Colors.orange,
       ),
     );
-
-    if (confirmed != true) return; // User hat abgebrochen
-
-    try {
-      final landlordId = widget.landlordDoc.id;
-
-      if (landlordId.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Fehler: Vermieter-ID fehlt!')));
-        return;
-      }
-
-      print('Updating landlord with ID: $landlordId');
-
-      // Erstelle die Review-Daten mit echten User-Informationen
-      final reviewData = {
-        'userId': _userId,
-        'username': _isAnonymous ? 'Anonymous' : _username,
-        'profileImageUrl': _isAnonymous ? '' : _profileImageUrl,
-        'isAnonymous': _isAnonymous,
-        'timestamp': DateTime.now(),
-        'additionalComments': _commentController.text.trim(),
-        // Alle Bewertungskategorien
-        'communication': _ratings['communication'],
-        'helpfulness': _ratings['helpfulness'],
-        'fairness': _ratings['fairness'],
-        'transparency': _ratings['transparency'],
-        'responseTime': _ratings['responseTime'],
-        'respect': _ratings['respect'],
-        'renovationManagement': _ratings['renovationManagement'],
-        'leaseAgreement': _ratings['leaseAgreement'],
-        'operatingCosts': _ratings['operatingCosts'],
-        'depositHandling': _ratings['depositHandling'],
-      };
-
-      // Speichere die Bewertung im Vermieter-Dokument
-      await _firestore.collection('landlords').doc(landlordId).set({
-        'reviews': FieldValue.arrayUnion([reviewData]),
-      }, SetOptions(merge: true));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bewertung erfolgreich abgegeben!')),
-      );
-
-      // Holen des aktualisierten Dokuments
-      final updatedDoc = await _firestore
-          .collection('landlords')
-          .doc(landlordId)
-          .get();
-
-      // Zurück zur Liste navigieren
-      Navigator.of(context).popUntil((route) => route.isFirst);
-
-      // Und dann direkt zur aktualisierten Detailseite
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LandlordDetailScreen(landlordDoc: updatedDoc),
-        ),
-      );
-    } catch (e) {
-      print('Fehler beim Speichern der Bewertung: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Speichern der Bewertung: $e')),
-      );
-    }
+    return;
   }
+
+  // ✅ NEU: Prüfe ob User bereits bewertet hat
+  final landlordId = widget.landlordDoc.id;
+  final userId = currentUser.uid;
+  
+  try {
+    final landlordDoc = await _firestore.collection('landlords').doc(landlordId).get();
+    if (landlordDoc.exists) {
+      final landlordData = landlordDoc.data();
+      final List<dynamic>? existingReviews = landlordData?['reviews'];
+      
+      if (existingReviews != null) {
+        final hasAlreadyReviewed = existingReviews.any((review) {
+          final reviewMap = review as Map<String, dynamic>;
+          return reviewMap['userId'] == userId;
+        });
+        
+        if (hasAlreadyReviewed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Sie haben diesen Vermieter bereits bewertet!'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          // Zurück zur Liste navigieren
+          await Future.delayed(Duration(seconds: 2));
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          return;
+        }
+      }
+    }
+  } catch (e) {
+    print('Fehler bei der Prüfung auf vorhandene Bewertung: $e');
+    // Bei Fehler fortfahren, um User nicht zu blockieren
+  }
+
+  // Validiere die Eingaben
+  if (!_validateFields()) {
+    final missingFields = _getMissingFields();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Bitte korrigieren Sie folgende Felder:\n• ${missingFields.join('\n• ')}',
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  final confirmed = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => TenantVerificationScreen(
+        isApartment: false, // ✅ Korrekt für Vermieter
+        targetName:
+            "${(widget.landlordDoc.data() as Map<String, dynamic>)['name'] ?? ''}",
+      ),
+    ),
+  );
+
+  if (confirmed != true) return; // User hat abgebrochen
+
+  try {
+    if (landlordId.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler: Vermieter-ID fehlt!')));
+      return;
+    }
+
+    print('Updating landlord with ID: $landlordId');
+
+    // Erstelle die Review-Daten mit echten User-Informationen
+    final reviewData = {
+      'userId': userId, // ✅ Verwende die userId Variable
+      'username': _isAnonymous ? 'Anonymous' : _username,
+      'profileImageUrl': _isAnonymous ? '' : _profileImageUrl,
+      'isAnonymous': _isAnonymous,
+      'timestamp': DateTime.now(),
+      'additionalComments': _commentController.text.trim(),
+      // Alle Bewertungskategorien
+      'communication': _ratings['communication'],
+      'helpfulness': _ratings['helpfulness'],
+      'fairness': _ratings['fairness'],
+      'transparency': _ratings['transparency'],
+      'responseTime': _ratings['responseTime'],
+      'respect': _ratings['respect'],
+      'renovationManagement': _ratings['renovationManagement'],
+      'leaseAgreement': _ratings['leaseAgreement'],
+      'operatingCosts': _ratings['operatingCosts'],
+      'depositHandling': _ratings['depositHandling'],
+    };
+
+    // Speichere die Bewertung im Vermieter-Dokument
+    await _firestore.collection('landlords').doc(landlordId).set({
+      'reviews': FieldValue.arrayUnion([reviewData]),
+    }, SetOptions(merge: true));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Bewertung erfolgreich abgegeben!')),
+    );
+
+    // Holen des aktualisierten Dokuments
+    final updatedDoc = await _firestore
+        .collection('landlords')
+        .doc(landlordId)
+        .get();
+
+    // Zurück zur Liste navigieren
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    // Und dann direkt zur aktualisierten Detailseite
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LandlordDetailScreen(landlordDoc: updatedDoc),
+      ),
+    );
+  } catch (e) {
+    print('Fehler beim Speichern der Bewertung: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Fehler beim Speichern der Bewertung: $e')),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {

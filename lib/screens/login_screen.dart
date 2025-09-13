@@ -14,7 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   late String _email;
   late String _password;
   bool _loading = false;
@@ -23,49 +23,48 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Anmelden'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('Anmelden'), centerTitle: true),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero-Bild oder Icon
             Center(
               child: Container(
                 width: 100,
                 height: 100,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Icon(
-                  Icons.account_circle,
-                  size: 60,
-                  color: Theme.of(context).primaryColor,
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback wenn Logo nicht geladen werden kann
+                    return Icon(
+                      Icons.account_circle,
+                      size: 60,
+                      color: Theme.of(context).primaryColor,
+                    );
+                  },
                 ),
               ),
             ),
             SizedBox(height: 24),
-            
+
             // Hauptüberschrift
             Text(
-              'Willkommen zurück!',
+              'Willkommen bei RateMyFlat!',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColor,
               ),
             ),
             SizedBox(height: 8),
-            
+
             Text(
               'Melden Sie sich an, um fortzufahren',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             SizedBox(height: 24),
-            
+
             // Login Form
             Form(
               key: _formKey,
@@ -93,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onSaved: (value) => _email = value!,
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Password Field
                   TextFormField(
                     decoration: InputDecoration(
@@ -117,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onSaved: (value) => _password = value!,
                   ),
                   SizedBox(height: 24),
-                  
+
                   // Error Message
                   if (_error.isNotEmpty)
                     Container(
@@ -127,13 +126,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.red.withOpacity(0.3)),
                       ),
-                      child: Text(
-                        _error,
-                        style: TextStyle(color: Colors.red),
-                      ),
+                      child: Text(_error, style: TextStyle(color: Colors.red)),
                     ),
                   SizedBox(height: 16),
-                  
+
                   // Login Button
                   SizedBox(
                     width: double.infinity,
@@ -159,9 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
-            
+
             SizedBox(height: 24),
-            
+
             // Register Link
             Center(
               child: TextButton(
@@ -188,9 +184,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            
+
             SizedBox(height: 16),
-            
+
             // Info Card
             Card(
               elevation: 2,
@@ -226,18 +222,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      
+
       setState(() {
         _loading = true;
         _error = '';
       });
-      
+
       try {
         UserCredential result = await _auth.signInWithEmailAndPassword(
           email: _email,
           password: _password,
         );
-        
+
         if (result.user != null) {
           Navigator.pushReplacement(
             context,
@@ -245,7 +241,8 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         } else {
           setState(() {
-            _error = 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Daten.';
+            _error =
+                'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Daten.';
             _loading = false;
           });
         }

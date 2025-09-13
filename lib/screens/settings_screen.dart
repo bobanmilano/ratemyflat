@@ -229,7 +229,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              '© ${DateTime.now().year} ImmoApp',
+              '© ${DateTime.now().year} RateMyFlat. Alle Rechte vorbehalten.',
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ],

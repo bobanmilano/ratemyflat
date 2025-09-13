@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:immo_app/screens/apartment_details_screen.dart';
 import 'package:immo_app/services/rate_limit_service.dart';
 import 'package:immo_app/widgets/address_section.dart';
 import 'package:immo_app/widgets/rating_section.dart';
@@ -148,20 +149,13 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         return;
       }
 
-      // WICHTIG: Duplikat-Prüfung AUSFÜHREN
-      print('Führe Duplikat-Prüfung aus...');
       await _performDuplicateCheck();
+      await Future.delayed(Duration(milliseconds: 100));
 
-      // WICHTIG: Warten und prüfen ob Duplikat gefunden
-      await Future.delayed(Duration(milliseconds: 100)); // Kleine Verzögerung
-
-      print('Nach Prüfung: _isDuplicate = $_isDuplicate');
-
-      if (_isDuplicate) {
-        print('Duplikat gefunden, handle Duplicate...');
+      if (_isDuplicate && _existingApartmentId != null) {
         _handleDuplicate();
         setState(() => _isLoading = false);
-        return;
+        return; // <- DAS FEHLT IN DEINEM CODE!
       }
 
       // Tenant Verification BEIM SPEICHERN
@@ -181,19 +175,12 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
 
       // Nur wenn bestätigt, prüfe Limits und speichere
       if (confirmed == true) {
-        // DEBUG: Zeige an, dass wir das Limit prüfen
-        print('Prüfe Rate-Limit für User: ${currentUser.uid}');
-
         // ERST JETZT das Rate-Limiting prüfen
         final canCreate = await RateLimitService.canUserCreateApartment(
           currentUser.uid,
         );
 
-        // DEBUG: Zeige das Ergebnis an
-        print('Rate-Limit Ergebnis: canCreate = $canCreate');
-
         if (!canCreate) {
-          print('Rate-Limit erreicht - Speichern abgebrochen');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -206,14 +193,11 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
           }
           setState(() => _isLoading = false);
           return;
-        } else {
-          print('Rate-Limit OK - fahre mit Speichern fort');
         }
 
         await _processAndSaveApartment(currentUser.uid);
       } else {
         // Abgebrochen
-        print('User hat Verification abgebrochen');
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -224,7 +208,6 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     } catch (e) {
       print('FEHLER in _saveApartment: $e');
       _showErrorSnackBar('Fehler beim Speichern: $e');
-    } finally {
       setState(() => _isLoading = false);
     }
   }
@@ -232,14 +215,20 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   // Duplikat-Prüfung
   Future<void> _performDuplicateCheck() async {
     try {
-      print('Starte Duplikat-Prüfung...');
-      print('Straße: ${_streetController.text.trim()}');
-      print('Hausnummer: ${_houseNumberController.text.trim()}');
-      print('PLZ: ${_zipCodeController.text.trim()}');
-      print('Stadt: ${_cityController.text.trim()}');
-      print('Land: $_selectedCountry');
+      // Prüfe ob alle benötigten Felder ausgefüllt sind
+      if (_streetController.text.trim().isEmpty ||
+          _houseNumberController.text.trim().isEmpty ||
+          _zipCodeController.text.trim().isEmpty ||
+          _cityController.text.trim().isEmpty) {
+        print('NICHT ALLE FELDER AUSGEFÜLLT - ÜBERSPRINGE PRÜFUNG');
+        setState(() {
+          _isDuplicate = false;
+          _existingApartmentId = null;
+        });
+        return;
+      }
 
-      final isDuplicate = await ApartmentService.checkForDuplicate(
+      final isDuplicate = await ApartmentService.checkForExactDuplicate(
         street: _streetController.text.trim(),
         houseNumber: _houseNumberController.text.trim(),
         topStiegeHaus: _topStiegeHausController.text.trim(),
@@ -248,52 +237,152 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         country: _selectedCountry,
       );
 
-      print('Duplikat gefunden: $isDuplicate');
+      print('Ergebnis checkForDuplicate: $isDuplicate');
 
       String? existingId;
       if (isDuplicate) {
-        existingId = await ApartmentService.getExistingApartmentId(
-          street: _streetController.text.trim(),
-          houseNumber: _houseNumberController.text.trim(),
-          topStiegeHaus: _topStiegeHausController.text.trim(),
-          zipCode: _zipCodeController.text.trim(),
-          city: _cityController.text.trim(),
-          country: _selectedCountry,
-        );
-        print('Existierende ID: $existingId');
+        existingId = await ApartmentService.getExistingApartmentId();
+        print('Gefundene existingId: $existingId');
       }
 
       setState(() {
         _isDuplicate = isDuplicate;
         _existingApartmentId = existingId;
       });
+
+      print('State nach setState:');
+      print('  _isDuplicate: $_isDuplicate');
+      print('  _existingApartmentId: $_existingApartmentId');
     } catch (e) {
       print('Fehler bei der Duplikat-Prüfung: $e');
-      // Bei Fehler nicht blockieren
+      // Bei Fehler nicht blockieren, setze auf false
+      setState(() {
+        _isDuplicate = false;
+        _existingApartmentId = null;
+      });
     }
+  }
+
+  // Hilfsmethode zur Normalisierung
+  String _normalizeText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s\-äöüß]'), '') // Entferne Sonderzeichen
+        .replaceAll(RegExp(r'\s+'), ' ') // Mehrfache Leerzeichen zu einem
+        // Normalisiere verschiedene Schreibweisen von "straße"
+        .replaceAll(RegExp(r'strasse|straße|str\.?($|\s)'), 'str. ')
+        .replaceAll(RegExp(r'\s+'), ' ') // Nochmal Leerzeichen normalisieren
+        .trim();
   }
 
   // Duplikat-Handling
   void _handleDuplicate() {
-    print('Handle Duplicate aufgerufen. _isDuplicate = $_isDuplicate');
-
+    // Zeige die Snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Diese Wohnung existiert bereits.'),
-        action: SnackBarAction(
-          label: 'Zur Wohnung',
-          onPressed: _navigateToExistingApartment,
+        content: Text(
+          '❌ Diese Wohnung existiert bereits!\n\n'
+          'Jede Wohnung darf nur EINMAL angelegt werden.\n'
+          'Fügen Sie Ihre Bewertung auf der Detailseite hinzu.',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.orange,
-        duration: Duration(seconds: 10), // Länger anzeigen
+        action: SnackBarAction(
+          label: 'ZUR WOHNUNG',
+          onPressed: _navigateToExistingApartment,
+          textColor: Colors.white,
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 30), // Wird später überschrieben
+        behavior: SnackBarBehavior.floating,
       ),
     );
+
+    // Automatische Navigation nach 3 Sekunden
+    Future.delayed(Duration(seconds: 3), () {
+      if (_existingApartmentId != null && context.mounted) {
+        _navigateToExistingApartment();
+      }
+    });
   }
 
-  // Navigation zur existierenden Wohnung
   void _navigateToExistingApartment() {
-    // Hier könntest du zur Detailseite der existierenden Wohnung navigieren
-    Navigator.pop(context); // oder spezifische Navigation
+    print('Navigiere zur existierenden Wohnung: $_existingApartmentId');
+
+    if (_existingApartmentId != null) {
+      // SCHLIESSE ZUERST DIE SNACKBAR
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+
+      // Lade das Dokument
+      FirebaseFirestore.instance
+          .collection('apartments')
+          .doc(_existingApartmentId)
+          .get()
+          .then((docSnapshot) async {
+            // Schließe den aktuellen Screen
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+
+            // Warte auf das Schließen
+            await Future.delayed(Duration(milliseconds: 300));
+
+            // Prüfe ob wir noch navigieren können
+            if (docSnapshot.exists) {
+              try {
+                // Verwende den Root-Navigator um sicherzugehen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ApartmentDetailScreen(apartmentDoc: docSnapshot),
+                  ),
+                );
+              } catch (e) {
+                print('Navigation error: $e');
+              }
+            } else {
+              // Zeige Fehlermeldung
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Wohnung nicht gefunden'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            }
+          })
+          .catchError((error) {
+            // SCHLIESSE DIE SNACKBAR BEI FEHLER
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            }
+
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Fehler beim Laden der Wohnung: $error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          });
+    } else {
+      // SCHLIESSE DIE SNACKBAR
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    }
   }
 
   Future<Map<String, dynamic>> _getCurrentUserReviewData() async {
@@ -398,6 +487,17 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         '${_zipCodeController.text.trim()} ${_cityController.text.trim()}, '
         '$_selectedCountry';
 
+    // Normalisierte Felder erstellen
+    final normalizedStreet = _normalizeText(_streetController.text.trim());
+    final normalizedCity = _normalizeText(_cityController.text.trim());
+    final normalizedTopStiege = _normalizeText(
+      _topStiegeHausController.text.trim(),
+    );
+    final normalizedHouseNumber = _normalizeText(
+      _houseNumberController.text.trim(),
+    );
+    final normalizedCountry = _normalizeText(_selectedCountry);
+
     // Erstelle das Apartment-Dokument mit userId und createdAt
     final apartmentData = {
       'userId': userId, // WICHTIG: userId hinzufügen
@@ -410,13 +510,18 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
       'address': fullAddress,
       'addresslong': addressLong,
       'additionalComments': _additionalCommentsController.text.trim(),
-      'createdAt': DateTime.now(), // WICHTIG: createdAt hinzufügen
+      'createdAt': DateTime.now(),
       'updatedAt': DateTime.now(),
-      'reviews': [reviewData], // Die Review-Daten im Array
+      'reviews': [reviewData],
       'imageUrls': imageUrls,
       'landlordId': _selectedLandlordId,
       'landlordName': _selectedLandlordName ?? '',
-      // Direkte Bewertungsfelder (für die Wohnung selbst)
+      'normalizedStreet': normalizedStreet,
+      'normalizedHouseNumber': normalizedHouseNumber,
+      'normalizedCity': normalizedCity,
+      'normalizedTopStiege': normalizedTopStiege,
+      'normalizedZipCode': _zipCodeController.text,
+      'normalizedCountry': normalizedCountry.trim(),
       ..._ratings.map((key, value) => MapEntry(key, value.toDouble())),
     };
 

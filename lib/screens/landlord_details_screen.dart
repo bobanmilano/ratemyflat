@@ -127,10 +127,6 @@ class LandlordDetailScreen extends StatelessWidget {
     final landlordData = landlordDoc.data() as Map<String, dynamic>;
     final List<dynamic>? reviews = landlordData['reviews'];
     final overallRating = calculateOverallRating(reviews ?? []);
-    final valueForMoneyRating = calculateAverageRating(
-      reviews ?? [],
-      'valueForMoney',
-    );
     final landlordRating = calculateAverageRating(reviews ?? [], 'landlord');
 
     // Alle Bewertungskategorien
@@ -166,89 +162,117 @@ class LandlordDetailScreen extends StatelessWidget {
     final hasImages = imageUrls != null && imageUrls.isNotEmpty;
     final firstImageUrl = hasImages ? imageUrls![0] : null;
 
-    return Scaffold(
-      appBar: AppBar(title: Text('Vermieter Details'), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gallery of Images - MIT CONSISTENT DESIGN
-            SizedBox(
-              height: 200,
-              child: hasImages
-                  ? ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: imageUrls?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        final imageUrl = imageUrls?[index] ?? '';
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: GestureDetector(
-                            onTap: () {
-                              _showImageDialog(context, imageUrl);
-                            },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                imageUrl,
-                                width: 150,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.asset(
-                                      'assets/landlord_placeholder.png',
-                                      width: 150,
-                                      height: 150,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        );
+return Scaffold(
+  appBar: AppBar(title: Text('Vermieter Details'), centerTitle: true),
+  body: SingleChildScrollView(
+    padding: EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Gallery of Images - MIT CONSISTENT DESIGN
+        SizedBox(
+          height: 200,
+          child: hasImages
+              ? (imageUrls!.length == 1
+                  ? // Einzelnes Bild - zentriert
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        _showImageDialog(context, imageUrls[0]);
                       },
-                    )
-                  : Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return Dialog(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: InteractiveViewer(
-                                    boundaryMargin: EdgeInsets.all(20.0),
-                                    minScale: 0.1,
-                                    maxScale: 4.0,
-                                    child: Image.asset(
-                                      'assets/landlord_placeholder.png',
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            'assets/landlord_placeholder.png',
-                            width: 200,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrls[0],
+                          height: 200,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                'assets/landlord_placeholder.png',
+                                height: 200,
+                                fit: BoxFit.contain,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
-            ),
-            SizedBox(height: 16),
+                  )
+                  : // Mehrere Bilder - horizontales Scrollen
+                  ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: imageUrls.length,
+                    itemBuilder: (context, index) {
+                      final imageUrl = imageUrls[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            _showImageDialog(context, imageUrl);
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              imageUrl,
+                              width: 150,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    'assets/landlord_placeholder.png',
+                                    width: 150,
+                                    height: 150,
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ))
+              : // Keine Bilder
+              Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: InteractiveViewer(
+                                boundaryMargin: EdgeInsets.all(20.0),
+                                minScale: 0.1,
+                                maxScale: 4.0,
+                                child: Image.asset(
+                                  'assets/landlord_placeholder.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/landlord_placeholder.png',
+                        height: 200,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+        SizedBox(height: 16),
 
             // VERMIETER-ADRESSE ALS CARD MIT LOCATION ICON
             Card(
@@ -256,82 +280,30 @@ class LandlordDetailScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: double.infinity,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        landlordData['name'] ?? 'Unbekannter Vermieter',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      child: Icon(
-                        Icons.person,
-                        color: Theme.of(context).primaryColor,
-                        size: 20,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-            
-                          SizedBox(height: 8),
-                          Text(
-                            landlordData['name'] ?? 'Unbekannter Vermieter',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      SizedBox(height: 8),
+                      buildStarRating(overallRating),
+                    ],
+                  ),
                 ),
               ),
             ),
             SizedBox(height: 16),
 
-            // Gesamtbewertung und Preis-Leistungs-Verhältnis
-            Text(
-              'Gesamtbewertung:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Durchschnitt:',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                buildStarRating(overallRating),
-              ],
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Preis-/Leistung:',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                buildStarRating(valueForMoneyRating),
-              ],
-            ),
-            SizedBox(height: 16),
-
-            // Durchschnittsbewertungen
-            Text(
-              'Einzelbewertungen:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 12),
             ...categories.map((category) {
               final fieldName = categoryMapping[category];
               final averageRating = calculateAverageRating(
@@ -345,7 +317,7 @@ class LandlordDetailScreen extends StatelessWidget {
                     children: [
                       Text(
                         category,
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                       ),
                       buildStarRating(averageRating),
                     ],
@@ -376,7 +348,8 @@ class LandlordDetailScreen extends StatelessWidget {
                 final isAnonymous = review['isAnonymous'] ?? false;
                 final timestamp = review['timestamp'];
                 final formattedDate = _formatDate(timestamp);
-                final comment = review['additionalComments'] ?? 'Kein Kommentar';
+                final comment =
+                    review['additionalComments'] ?? 'Kein Kommentar';
                 final overallRating = calculateOverallRating([review]);
 
                 return Card(
@@ -396,7 +369,8 @@ class LandlordDetailScreen extends StatelessWidget {
                             // Profilbild
                             CircleAvatar(
                               radius: 20,
-                              backgroundImage: profileImageUrl.isNotEmpty && !isAnonymous
+                              backgroundImage:
+                                  profileImageUrl.isNotEmpty && !isAnonymous
                                   ? NetworkImage(profileImageUrl)
                                   : null,
                               child: profileImageUrl.isEmpty || isAnonymous
@@ -498,7 +472,11 @@ class LandlordDetailScreen extends StatelessWidget {
                   padding: EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      Icon(Icons.comment_outlined, size: 48, color: Colors.grey[400]),
+                      Icon(
+                        Icons.comment_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
                       SizedBox(height: 16),
                       Text(
                         'Keine Bewertungen',
@@ -525,8 +503,10 @@ class LandlordDetailScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  final landlordData = landlordDoc.data() as Map<String, dynamic>;
-                  final landlordName = landlordData['name'] ?? 'Diesen Vermieter';
+                  final landlordData =
+                      landlordDoc.data() as Map<String, dynamic>;
+                  final landlordName =
+                      landlordData['name'] ?? 'Diesen Vermieter';
 
                   final result = await Navigator.push(
                     context,
@@ -587,7 +567,7 @@ class LandlordDetailScreen extends StatelessWidget {
 
             if (snapshot.data!.docs.isEmpty) {
               return Text(
-                'Keine Wohnungen gefunden',
+                'Zu diesem Vermieter sind noch keine Wohnungen verlinkt',
                 style: TextStyle(color: Colors.grey),
               );
             }

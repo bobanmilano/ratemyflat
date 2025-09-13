@@ -1,4 +1,6 @@
 // lib/screens/landlord_list_screen.dart
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/screens/add_landlord_screen.dart';
@@ -302,97 +304,129 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
     );
   }
 
-  Widget _buildLandlordCard(DocumentSnapshot landlordDoc) {
-    final landlord = landlordDoc.data() as Map<String, dynamic>;
-    final overallRating = _calculateOverallRating(landlord);
-    final List<dynamic>? imageUrls = landlord['imageUrls'];
-    final hasImages = imageUrls != null && imageUrls.isNotEmpty;
-    final firstImageUrl = hasImages ? imageUrls![0] : null;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  LandlordDetailScreen(landlordDoc: landlordDoc),
-            ),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: firstImageUrl != null
-                  ? Image.network(
-                      firstImageUrl,
-                      height: 100,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 100,
-                          width: double.infinity,
-                          color: Colors.grey[300],
-                          child: Icon(
-                            Icons.person, // Geändert von Icons.business zu Icons.person
-                            color: Colors.grey[600],
-                            size: 40,
-                          ),
+Widget _buildLandlordCard(DocumentSnapshot landlordDoc) {
+  final landlord = landlordDoc.data() as Map<String, dynamic>;
+  final overallRating = _calculateOverallRating(landlord);
+  final List<dynamic>? imageUrls = landlord['imageUrls'];
+  final hasImages = imageUrls != null && imageUrls.isNotEmpty;
+  final firstImageUrl = hasImages ? imageUrls![0] : null;
+
+  return Card(
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                LandlordDetailScreen(landlordDoc: landlordDoc),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+            child: firstImageUrl != null
+                ? Container(
+                    height: 100,
+                    width: double.infinity,
+                    child: FutureBuilder<Rect?>(
+                      future: _detectFace(firstImageUrl),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        
+                        return Image.network(
+                          firstImageUrl,
+                          fit: BoxFit.contain,
+                          alignment: snapshot.hasData && snapshot.data != null 
+                            ? _getFaceAlignment(snapshot.data!) 
+                            : Alignment.center,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.grey[600],
+                                size: 40,
+                              ),
+                            );
+                          },
                         );
                       },
-                    )
-                  : Container(
-                      height: 100,
-                      width: double.infinity,
-                      color: Colors.grey[300],
-                      child: Icon(
-                        Icons.person, // Geändert von Icons.business zu Icons.person
-                        color: Colors.grey[600],
-                        size: 40,
-                      ),
                     ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    landlord['name'] ?? 'Unbekannter Vermieter',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8),
-                  _buildStarRating(overallRating),
-                  SizedBox(height: 4),
-                  Text(
-                    '${landlord['reviews']?.length ?? 0} Bewertungen',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 10,
+                  )
+                : Container(
+                    height: 100,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.grey[600],
+                      size: 40,
                     ),
                   ),
-                ],
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  landlord['name'] ?? 'Unbekannter Vermieter',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 8),
+                _buildStarRating(overallRating),
+                SizedBox(height: 4),
+                Text(
+                  '${landlord['reviews']?.length ?? 0} Bewertungen',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
+Future<Rect?> _detectFace(String imageUrl) async {
+  try {
+    // Für eine vollständige Implementierung benötigst du das Google ML Kit Setup
+    // Dies ist ein vereinfachter Ansatz
+    return null;
+  } catch (e) {
+    print('Fehler bei Gesichtserkennung: $e');
+    return null;
+  }
+}
+
+Alignment _getFaceAlignment(Rect faceRect) {
+  // Berechne die Ausrichtung basierend auf der Gesichtsposition
+  // Dies ist eine vereinfachte Version
+  return Alignment.center;
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

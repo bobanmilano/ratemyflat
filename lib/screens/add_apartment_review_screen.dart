@@ -162,6 +162,44 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
       return;
     }
 
+    // ✅ NEU: Prüfe ob User bereits bewertet hat
+    final apartmentId = widget.apartmentDoc.id;
+    final userId = currentUser.uid;
+
+    try {
+      final apartmentDoc = await _firestore
+          .collection('apartments')
+          .doc(apartmentId)
+          .get();
+      if (apartmentDoc.exists) {
+        final apartmentData = apartmentDoc.data();
+        final List<dynamic>? existingReviews = apartmentData?['reviews'];
+
+        if (existingReviews != null) {
+          final hasAlreadyReviewed = existingReviews.any((review) {
+            final reviewMap = review as Map<String, dynamic>;
+            return reviewMap['userId'] == userId;
+          });
+
+          if (hasAlreadyReviewed) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Sie haben diese Wohnung bereits bewertet!'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            // Zurück zur Liste navigieren
+            await Future.delayed(Duration(seconds: 2));
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      print('Fehler bei der Prüfung auf vorhandene Bewertung: $e');
+      // Bei Fehler fortfahren, um User nicht zu blockieren
+    }
+
     // Validiere die Eingaben
     if (!_validateFields()) {
       final missingFields = _getMissingFields();

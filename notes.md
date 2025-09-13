@@ -65,6 +65,17 @@ Mietvertrag: Ist der Mietvertrag fair und transparent?
 - define "must have" attributes in all forms 
 - default image in the apartment details screen
 - filter in den wohnungen funktioniert nicht mehr
+- doppelbewertungen verhindern
+
+
+
+
+- wohnung erstellen: mehr abstand zwischen den sternen der einzelbewertungen. überschrift "einzelbewertungen" entfernen
+
+
+
+
+
 
 
 

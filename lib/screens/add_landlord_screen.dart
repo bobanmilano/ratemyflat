@@ -76,30 +76,40 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
       setState(() {
         _userId = currentUser.uid;
       });
-      
+
       try {
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
             .get();
-        
+
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>?;
           setState(() {
-            _username = userData?['username'] ?? currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Mieter';
+            _username =
+                userData?['username'] ??
+                currentUser.displayName ??
+                currentUser.email?.split('@')[0] ??
+                'Mieter';
             _profileImageUrl = userData?['profileImageUrl'] ?? '';
           });
         } else {
           // Fallback zu Firebase Auth Daten
           setState(() {
-            _username = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Mieter';
+            _username =
+                currentUser.displayName ??
+                currentUser.email?.split('@')[0] ??
+                'Mieter';
           });
         }
       } catch (e) {
         print('Fehler beim Laden der User-Daten: $e');
         // Fallback
         setState(() {
-          _username = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Mieter';
+          _username =
+              currentUser.displayName ??
+              currentUser.email?.split('@')[0] ??
+              'Mieter';
         });
       }
     }
@@ -245,14 +255,18 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
 
     // Berechne Durchschnittsbewertung
     final totalRating = _ratings.values.reduce((a, b) => a + b);
-    final averageRating = _ratings.isNotEmpty ? totalRating / _ratings.length : 0.0;
-    
+    final averageRating = _ratings.isNotEmpty
+        ? totalRating / _ratings.length
+        : 0.0;
+
     final landlordData = {
       'userId': userId, // WICHTIG: userId hinzufügen
       'name': _nameController.text.trim(),
       'imageUrls': imageUrls,
       'username': _isAnonymous ? 'Anonymous' : _username, // Echter Username
-      'profileImageUrl': _isAnonymous ? '' : _profileImageUrl, // Echtes Profilbild
+      'profileImageUrl': _isAnonymous
+          ? ''
+          : _profileImageUrl, // Echtes Profilbild
       'isAnonymous': _isAnonymous, // Anonymitäts-Flag
       'createdAt': DateTime.now(), // WICHTIG: createdAt hinzufügen
       'updatedAt': DateTime.now(), // WICHTIG: updatedAt hinzufügen
@@ -260,7 +274,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
       'totalRatings': _ratings.length, // Anzahl Bewertungen
       if (_selectedApartmentIds.isNotEmpty)
         'apartmentIds': _selectedApartmentIds,
-      
+
       // Erste Review (die Erstellung selbst)
       'reviews': [_buildReviewData()],
     };
@@ -314,10 +328,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -653,10 +664,6 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Bewertungen',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
             SizedBox(height: 12),
             ..._ratings.keys.map((key) {
               return _buildRatingWidget(key);
@@ -706,9 +713,9 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
       message: _tooltipMessages[key] ?? '',
       child: InkWell(
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_tooltipMessages[key] ?? '')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(_tooltipMessages[key] ?? '')));
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -718,7 +725,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               children: [
                 Text(
                   _ratingLabels[key] ?? key,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(width: 4),
                 Icon(Icons.help_outline, size: 16, color: Colors.grey),
@@ -733,7 +740,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 });
               },
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 28),
           ],
         ),
       ),
@@ -884,7 +891,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
-            
+
             // User-Info Card (wenn nicht anonym)
             if (!_isAnonymous)
               Card(
@@ -942,12 +949,12 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 ),
               ),
             SizedBox(height: 16),
-            
+
             SwitchListTile(
               title: Text('Anonym veröffentlichen'),
               subtitle: Text(
-                _isAnonymous 
-                    ? 'Ihr Name und Profilbild werden nicht angezeigt' 
+                _isAnonymous
+                    ? 'Ihr Name und Profilbild werden nicht angezeigt'
                     : 'Ihr Name und Profilbild werden öffentlich sichtbar',
               ),
               value: _isAnonymous,
@@ -958,7 +965,9 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               },
               secondary: Icon(
                 _isAnonymous ? Icons.visibility_off : Icons.visibility,
-                color: _isAnonymous ? Colors.grey : Theme.of(context).primaryColor,
+                color: _isAnonymous
+                    ? Colors.grey
+                    : Theme.of(context).primaryColor,
               ),
             ),
             if (_isAnonymous)
@@ -976,10 +985,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                     Expanded(
                       child: Text(
                         'Ihre Bewertung wird anonym veröffentlicht. Sie hilft anderen Mietern, ohne Ihre Identität preiszugeben.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.orange),
                       ),
                     ),
                   ],
@@ -1029,48 +1035,48 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               ),
             ),
 
-           SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    onPressed: _isLoading ? null : _saveLandlord,
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      backgroundColor: Theme.of(context).primaryColor,
-      foregroundColor: Colors.white,
-      elevation: 2,
-    ),
-    child: _isLoading
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
-              SizedBox(width: 12),
-              Text(
-                'Speichern...',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _saveLandlord,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
                 ),
+                child: _isLoading
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Speichern...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        'Vermieter speichern',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
-            ],
-          )
-        : Text(
-            'Vermieter speichern',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
             ),
-          ),
-  ),
-),
           ],
         ),
       ),
