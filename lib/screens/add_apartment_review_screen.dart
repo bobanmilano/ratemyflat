@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/screens/apartment_details_screen.dart';
 import 'package:immo_app/screens/tenant_verification_screen.dart';
 import 'package:immo_app/services/rate_limit_service.dart'; // Für Zufallsnamen
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class AddApartmentReviewScreen extends StatefulWidget {
   final DocumentSnapshot apartmentDoc;
@@ -110,7 +111,7 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
                 : _ratings[category]! >= starValue - 0.5
                 ? Icons.star_half
                 : Icons.star_border,
-            color: Colors.orange,
+            color: AppColors.starActive, // ✅ THEME FARBE
             size: 32,
           ),
           onPressed: () {
@@ -156,7 +157,7 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
           content: Text(
             'Bewertungslimit erreicht: Maximal 8 Bewertungen pro Tag',
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.warning, // ✅ THEME FARBE
         ),
       );
       return;
@@ -185,7 +186,7 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Sie haben diese Wohnung bereits bewertet!'),
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.warning, // ✅ THEME FARBE
               ),
             );
             // Zurück zur Liste navigieren
@@ -208,7 +209,7 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
           content: Text(
             'Bitte korrigieren Sie folgende Felder:\n• ${missingFields.join('\n• ')}',
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error, // ✅ THEME FARBE
         ),
       );
       return;
@@ -321,27 +322,33 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
     final address = apartmentData['addresslong'] ?? 'Unbekannte Adresse';
 
     return Scaffold(
-      appBar: AppBar(title: Text('Bewertung abgeben')),
+      appBar: AppBar(
+        title: Text('Bewertung abgeben'),
+        // Entfernt explizite Farbzuweisungen - verwenden das App-Theme
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Deine Bewertung für:\n$address:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // User-Info Card (wenn nicht anonym)
             if (!_isAnonymous)
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                   child: Row(
                     children: [
                       // Profilbild
@@ -354,7 +361,7 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
                             ? Icon(Icons.person, size: 20)
                             : null,
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                       // Username
                       Expanded(
                         child: Column(
@@ -363,14 +370,14 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
                             Text(
                               'Bewertung von:',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                color: AppColors.textSecondary, // ✅ THEME FARBE
                               ),
                             ),
                             Text(
                               _username,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -381,7 +388,7 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
                   ),
                 ),
               ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             ..._ratings.keys.map((key) {
               final categoryName = categoryMapping[key];
@@ -391,14 +398,14 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
                     child: Text(
                       categoryName ?? key,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
                   buildStarRating(key),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
                 ],
               );
             }).toList(),
@@ -406,9 +413,12 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
             // Verbessertes Kommentarfeld
             Text(
               'Zusätzliche Kommentare *',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             TextField(
               controller: _commentController,
               maxLines: null, // Dynamische Höhe
@@ -417,23 +427,25 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                ),
                 labelText: 'Kommentar *',
                 hintText: 'Beschreiben Sie Ihre Erfahrung mit der Wohnung...',
                 alignLabelWithHint: true,
                 helperText: 'Mindestens 20, maximal 800 Zeichen',
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             // Anonymität-Option
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
               ),
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                 child: Column(
                   children: [
                     SwitchListTile(
@@ -451,31 +463,33 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
                       },
                       secondary: Icon(
                         _isAnonymous ? Icons.visibility_off : Icons.visibility,
-                        color: _isAnonymous
-                            ? Colors.grey
-                            : Theme.of(context).primaryColor,
+                        // Entfernt explizite Farbzuweisung - verwendet Theme
                       ),
                     ),
                     if (_isAnonymous)
                       Container(
-                        padding: EdgeInsets.all(8),
+                        padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.warning.withOpacity(0.1), // ✅ THEME FARBE
+                          borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                           border: Border.all(
-                            color: Colors.orange.withOpacity(0.3),
+                            color: AppColors.warning.withOpacity(0.3), // ✅ THEME FARBE
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info, color: Colors.orange, size: 16),
-                            SizedBox(width: 8),
+                            Icon(
+                              Icons.info, 
+                              color: AppColors.warning, // ✅ THEME FARBE
+                              size: 16,
+                            ),
+                            SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                             Expanded(
                               child: Text(
                                 'Ihre Bewertung wird anonym veröffentlicht. Sie hilft anderen Mietern, ohne Ihre Identität preiszugeben.',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.orange,
+                                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                  color: AppColors.warning, // ✅ THEME FARBE
                                 ),
                               ),
                             ),
@@ -487,31 +501,35 @@ class _AddApartmentReviewScreenState extends State<AddApartmentReviewScreen> {
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             Text(
               '* Pflichtfeld',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textDisabled, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _submitReview,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  padding: EdgeInsets.symmetric(
+                    vertical: AppSpacing.m, // ✅ THEME ABSTAND
+                    horizontal: AppSpacing.l, // ✅ THEME ABSTAND
                   ),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                  ),
+                  // Entfernt explizite Farbzuweisungen - verwendet Theme
                 ),
                 child: Text(
                   'Bewertung absenden',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    // Entfernt explizite Farbzuweisung - verwendet Theme
                   ),
                 ),
               ),

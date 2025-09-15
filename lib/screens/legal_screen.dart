@@ -1,5 +1,6 @@
 // lib/screens/legal/legal_screen.dart
 import 'package:flutter/material.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class LegalScreen extends StatelessWidget {
   final String documentType; // 'privacy', 'terms', 'imprint'
@@ -22,26 +23,34 @@ class LegalScreen extends StatelessWidget {
 
   Widget _buildPrivacyPolicy(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Datenschutzerklärung'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Datenschutzerklärung'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Datenschutzerklärung',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: AppTypography.headline2, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             Text(
               'Stand: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             _buildSection(
               context,
@@ -147,7 +156,7 @@ class LegalScreen extends StatelessWidget {
               'Wir behalten uns vor, diese Datenschutzerklärung anzupassen, wenn sich die rechtlichen Rahmenbedingungen oder unsere Dienste ändern. Die aktuelle Version ist stets in der App einsehbar.',
             ),
 
-            SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
           ],
         ),
       ),
@@ -159,26 +168,31 @@ class LegalScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Allgemeine Geschäftsbedingungen'),
         centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Allgemeine Geschäftsbedingungen',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: AppTypography.headline2, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             Text(
               'Stand: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             _buildSection(
               context,
@@ -281,7 +295,7 @@ class LegalScreen extends StatelessWidget {
               'Sollten einzelne Bestimmungen dieser AGB unwirksam sein oder werden, berührt dies die Wirksamkeit der übrigen Bestimmungen nicht. Die unwirksame Bestimmung ist durch eine wirksame Regelung zu ersetzen, die dem wirtschaftlichen Zweck der unwirksamen Bestimmung möglichst nahekommt.',
             ),
 
-            SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
           ],
         ),
       ),
@@ -290,21 +304,26 @@ class LegalScreen extends StatelessWidget {
 
   Widget _buildImprint(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Impressum'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Impressum'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Impressum',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: AppTypography.headline2, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             _buildSection(
               context,
@@ -352,7 +371,7 @@ class LegalScreen extends StatelessWidget {
                   'Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet. Insbesondere werden Inhalte Dritter als solche gekennzeichnet. Sollten Sie trotzdem auf eine Urheberrechtsverletzung aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.',
             ),
 
-            SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
           ],
         ),
       ),
@@ -361,9 +380,19 @@ class LegalScreen extends StatelessWidget {
 
   Widget _buildNotFound(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Dokument nicht gefunden')),
+      appBar: AppBar(
+        title: Text('Dokument nicht gefunden'),
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: Center(
-        child: Text('Das angeforderte Dokument wurde nicht gefunden.'),
+        child: Text(
+          'Das angeforderte Dokument wurde nicht gefunden.',
+          style: TextStyle(
+            fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+            color: AppColors.textPrimary, // ✅ THEME FARBE
+          ),
+        ),
       ),
     );
   }
@@ -375,14 +404,21 @@ class LegalScreen extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).primaryColor,
+            color: AppColors.primary, // ✅ THEME FARBE
           ),
         ),
-        SizedBox(height: 12),
-        Text(content, style: TextStyle(fontSize: 14, height: 1.6)),
-        SizedBox(height: 24),
+        SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
+        Text(
+          content, 
+          style: TextStyle(
+            fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+            height: 1.6,
+            color: AppColors.textPrimary, // ✅ THEME FARBE
+          ),
+        ),
+        SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
       ],
     );
   }

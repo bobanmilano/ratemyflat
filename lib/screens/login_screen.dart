@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/screens/register_screen.dart';
 import 'package:immo_app/main.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -23,9 +24,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Anmelden'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Anmelden'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -41,29 +47,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     return Icon(
                       Icons.account_circle,
                       size: 60,
-                      color: Theme.of(context).primaryColor,
+                      color: AppColors.primary, // ✅ THEME FARBE
                     );
                   },
                 ),
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Hauptüberschrift
             Text(
               'Willkommen bei RateMyFlat!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             Text(
               'Melden Sie sich an, um fortzufahren',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Login Form
             Form(
@@ -77,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'ihre.email@beispiel.de',
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                     ),
                     validator: (value) {
@@ -91,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     onSaved: (value) => _email = value!,
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
                   // Password Field
                   TextFormField(
@@ -100,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: '••••••••',
                       prefixIcon: Icon(Icons.lock),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                     ),
                     obscureText: true,
@@ -115,20 +125,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     onSaved: (value) => _password = value!,
                   ),
-                  SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
                   // Error Message
                   if (_error.isNotEmpty)
                     Container(
-                      padding: EdgeInsets.all(12),
+                      padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        color: AppColors.error.withOpacity(0.1), // ✅ THEME FARBE
+                        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.3), // ✅ THEME FARBE
+                        ),
                       ),
-                      child: Text(_error, style: TextStyle(color: Colors.red)),
+                      child: Text(
+                        _error, 
+                        style: TextStyle(color: AppColors.error), // ✅ THEME FARBE
+                      ),
                     ),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
                   // Login Button
                   SizedBox(
@@ -136,17 +151,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: _loading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.m), // ✅ THEME ABSTAND
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                         ),
+                        backgroundColor: AppColors.accent, // ✅ THEME FARBE
+                        foregroundColor: Colors.white,
                       ),
                       child: _loading
                           ? CircularProgressIndicator(color: Colors.white)
                           : Text(
                               'Anmelden',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -156,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Register Link
             Center(
@@ -170,12 +187,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Text.rich(
                   TextSpan(
                     text: 'Noch keinen Account? ',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
                     children: [
                       TextSpan(
                         text: 'Registrieren',
                         style: TextStyle(
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary, // ✅ THEME FARBE
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -185,28 +202,31 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Info Card
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
               ),
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
                 child: Row(
                   children: [
                     Icon(
                       Icons.info,
-                      color: Theme.of(context).primaryColor,
+                      color: AppColors.primary, // ✅ THEME FARBE
                       size: 24,
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                     Expanded(
                       child: Text(
                         'Ihre Daten sind sicher bei uns. Wir respektieren Ihre Privatsphäre.',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: TextStyle(
+                          fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                          color: AppColors.textPrimary, // ✅ THEME FARBE
+                        ),
                       ),
                     ),
                   ],

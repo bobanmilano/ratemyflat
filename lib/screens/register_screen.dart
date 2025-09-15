@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/main.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -30,9 +31,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Registrieren'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Registrieren'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -42,33 +48,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Icon(
                   Icons.person_add,
                   size: 60,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary, // ✅ THEME FARBE
                 ),
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Hauptüberschrift
             Text(
               'Konto erstellen',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             Text(
               'Erstellen Sie ein neues Konto',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Register Form
             Form(
@@ -82,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Ihr gewünschter Benutzername',
                       prefixIcon: Icon(Icons.person),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                     ),
                     validator: (value) {
@@ -96,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _username = value,
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
                   // Email Field
                   TextFormField(
@@ -105,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'ihre.email@beispiel.de',
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                     ),
                     validator: (value) {
@@ -119,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _email = value,
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
                   // Password Field
                   TextFormField(
@@ -128,7 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Mindestens 6 Zeichen',
                       prefixIcon: Icon(Icons.lock),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                     ),
                     obscureText: true,
@@ -143,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _password = value,
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
                   // Password Confirmation Field
                   TextFormField(
@@ -152,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Passwort erneut eingeben',
                       prefixIcon: Icon(Icons.lock_outline),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                     ),
                     obscureText: true,
@@ -167,20 +177,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _confirmPassword = value,
                   ),
-                  SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
                   // Error Message
                   if (_error.isNotEmpty)
                     Container(
-                      padding: EdgeInsets.all(12),
+                      padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        color: AppColors.error.withOpacity(0.1), // ✅ THEME FARBE
+                        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.3), // ✅ THEME FARBE
+                        ),
                       ),
-                      child: Text(_error, style: TextStyle(color: Colors.red)),
+                      child: Text(
+                        _error, 
+                        style: TextStyle(color: AppColors.error), // ✅ THEME FARBE
+                      ),
                     ),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
                   // Register Button
                   SizedBox(
@@ -188,17 +203,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: ElevatedButton(
                       onPressed: _loading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.m), // ✅ THEME ABSTAND
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                         ),
+                        backgroundColor: AppColors.accent, // ✅ THEME FARBE
+                        foregroundColor: Colors.white,
                       ),
                       child: _loading
                           ? CircularProgressIndicator(color: Colors.white)
                           : Text(
                               'Konto erstellen',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -208,7 +225,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Login Link
             Center(
@@ -219,12 +236,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Text.rich(
                   TextSpan(
                     text: 'Bereits ein Konto? ',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
                     children: [
                       TextSpan(
                         text: 'Anmelden',
                         style: TextStyle(
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary, // ✅ THEME FARBE
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -234,16 +251,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Info Card
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
               ),
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -251,21 +268,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         Icon(
                           Icons.security,
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary, // ✅ THEME FARBE
                           size: 24,
                         ),
-                        SizedBox(width: 12),
+                        SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                         Text(
                           'Datenschutz',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                     Text(
                       'Ihre Daten werden sicher gespeichert und nicht an Dritte weitergegeben.',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: TextStyle(
+                        fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                        color: AppColors.textPrimary, // ✅ THEME FARBE
+                      ),
                     ),
                   ],
                 ),

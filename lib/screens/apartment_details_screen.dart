@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Für Timestamp
 import 'package:immo_app/screens/add_apartment_review_screen.dart'; // Import für AddApartmentReviewScreen
 import 'package:immo_app/screens/landlord_details_screen.dart'; // Import für LandlordDetailScreen
 import 'package:immo_app/screens/tenant_verification_screen.dart'; // Import für TenantVerificationScreen
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class ApartmentDetailScreen extends StatelessWidget {
   final DocumentSnapshot apartmentDoc;
@@ -96,22 +97,34 @@ class ApartmentDetailScreen extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: AppColors.textSecondary, // ✅ THEME FARBE
             ),
           ),
         if (label.isNotEmpty)
-          SizedBox(height: 4),
+          SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int i = 0; i < fullStars; i++)
-              Icon(Icons.star, color: Colors.orange, size: 22),
+              Icon(
+                Icons.star, 
+                color: AppColors.starActive, // ✅ THEME FARBE
+                size: 22,
+              ),
             if (fractionalPart == 0.5)
-              Icon(Icons.star_half, color: Colors.orange, size: 22),
+              Icon(
+                Icons.star_half, 
+                color: AppColors.starActive, // ✅ THEME FARBE
+                size: 22,
+              ),
             for (int i = 0; i < emptyStars; i++)
-              Icon(Icons.star_border, color: Colors.grey, size: 22),
+              Icon(
+                Icons.star_border, 
+                color: AppColors.starInactive, // ✅ THEME FARBE
+                size: 22,
+              ),
           ],
         ),
       ],
@@ -135,6 +148,17 @@ class ApartmentDetailScreen extends StatelessWidget {
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, stackTrace) {
                   return Center(child: Text('Bild nicht verfügbar'));
                 },
@@ -195,10 +219,15 @@ class ApartmentDetailScreen extends StatelessWidget {
     final hasImages = imageUrls != null && imageUrls.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Apartment Details'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Apartment Details'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -212,21 +241,38 @@ class ApartmentDetailScreen extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final imageUrl = imageUrls?[index] ?? '';
                           return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
+                            padding: EdgeInsets.only(right: AppSpacing.s), // ✅ THEME ABSTAND
                             child: GestureDetector(
                               onTap: () {
                                 _showImageDialog(context, imageUrl);
                               },
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                                 child: Image.network(
                                   imageUrl,
                                   width: 150,
                                   fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    // ✅ LAZY LOADING IMPLEMENTIERT
+                                    if (loadingProgress == null) return child;
+                                    return Container(
+                                      width: 150,
+                                      height: 150,
+                                      color: AppColors.cardBackground, // ✅ THEME FARBE
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded /
+                                                  loadingProgress.expectedTotalBytes!
+                                              : null,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                   errorBuilder: (context, error, stackTrace) {
                                     // Auch bei Netzwerkfehlern Default-Bild anzeigen
                                     return ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                                       child: Image.asset(
                                         'assets/apartment-placeholder.jpeg',
                                         width: 150,
@@ -269,7 +315,7 @@ class ApartmentDetailScreen extends StatelessWidget {
                             );
                           },
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                             child: Image.asset(
                               'assets/apartment-placeholder.jpeg',
                               width: 200,
@@ -280,16 +326,16 @@ class ApartmentDetailScreen extends StatelessWidget {
                         ),
                       ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
               // ADRESSE ALS CARD MIT LOCATION ICON
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -297,28 +343,26 @@ class ApartmentDetailScreen extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).primaryColor.withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Icon(
                           Icons.location_on,
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary, // ✅ THEME FARBE
                           size: 20,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 4),
+                            SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
                             Text(
                               apartmentData['addresslong'] ??
                                   'Keine Adresse verfügbar',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -329,8 +373,8 @@ class ApartmentDetailScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
-              SizedBox(height: 8),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+              SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
               // Vermieter-Link (wenn vorhanden)
               if (apartmentData['landlordId'] != null)
@@ -359,44 +403,42 @@ class ApartmentDetailScreen extends StatelessWidget {
                     return Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                       ),
                       child: ListTile(
-                        contentPadding: EdgeInsets.all(12),
+                        contentPadding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                         leading: Container(
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).primaryColor.withOpacity(0.1),
+                            color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Icon(
                             Icons.person,
-                            color: Theme.of(context).primaryColor,
+                            color: AppColors.primary, // ✅ THEME FARBE
                             size: 20,
                           ),
                         ),
                         title: Text(
                           'Vermietet von:',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                            color: AppColors.textSecondary, // ✅ THEME FARBE
                           ),
                         ),
                         subtitle: Text(
                           landlordName,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         trailing: Icon(
                           Icons.arrow_forward_ios,
                           size: 16,
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary, // ✅ THEME FARBE
                         ),
                         onTap: () {
                           Navigator.push(
@@ -412,18 +454,18 @@ class ApartmentDetailScreen extends StatelessWidget {
                     );
                   },
                 ),
-              SizedBox(height: 16),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
               // Hauptüberschrift wie in AboutScreen
               Text(
                 'Bewertungsdetails',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary, // ✅ THEME FARBE
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
               // Gesamtbewertung und Preis-Leistungs-Verhältnis
               _buildInfoCard(
@@ -433,7 +475,7 @@ class ApartmentDetailScreen extends StatelessWidget {
                 content: 'Durchschnittliche Bewertung aller Kategorien',
                 rating: overallRating,
               ),
-              SizedBox(height: 16),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
               _buildInfoCard(
                 context,
@@ -442,18 +484,18 @@ class ApartmentDetailScreen extends StatelessWidget {
                 content: 'Verhältnis von Preis zu Leistung',
                 rating: valueForMoneyRating,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
               // Durchschnittsbewertungen
               Text(
                 'Einzelbewertungen:',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary, // ✅ THEME FARBE
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
               ...categories.map((category) {
                 final fieldName = categoryMapping[category];
                 final averageRating = calculateAverageRating(
@@ -466,18 +508,18 @@ class ApartmentDetailScreen extends StatelessWidget {
                   rating: averageRating,
                 );
               }).toList(),
-              SizedBox(height: 24),
+              SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
               // Einzelbewertungen
               Text(
                 'MIETERKOMMENTARE:',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary, // ✅ THEME FARBE
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
               if (reviews != null && reviews.isNotEmpty)
                 ...reviews.map((review) {
                   // Extrahiere Review-Daten
@@ -496,11 +538,11 @@ class ApartmentDetailScreen extends StatelessWidget {
                   return Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                     ),
-                    margin: EdgeInsets.symmetric(vertical: 8),
+                    margin: EdgeInsets.symmetric(vertical: AppSpacing.s), // ✅ THEME ABSTAND
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -517,7 +559,7 @@ class ApartmentDetailScreen extends StatelessWidget {
                                     ? Icon(Icons.person, size: 20)
                                     : null,
                               ),
-                              SizedBox(width: 12),
+                              SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                               // Username und Datum
                               Expanded(
                                 child: Column(
@@ -527,14 +569,14 @@ class ApartmentDetailScreen extends StatelessWidget {
                                       isAnonymous ? 'Anonymous' : username,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                       ),
                                     ),
                                     Text(
                                       formattedDate,
                                       style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
+                                        color: AppColors.textSecondary, // ✅ THEME FARBE
+                                        fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
                                       ),
                                     ),
                                   ],
@@ -544,25 +586,25 @@ class ApartmentDetailScreen extends StatelessWidget {
                               if (isAnonymous)
                                 Container(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                    horizontal: AppSpacing.s, // ✅ THEME ABSTAND
+                                    vertical: AppSpacing.xs, // ✅ THEME ABSTAND
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: AppColors.cardBackground, // ✅ THEME FARBE
+                                    borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                                   ),
                                   child: Text(
                                     'Anonym',
                                     style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 10,
+                                      color: AppColors.textSecondary, // ✅ THEME FARBE
+                                      fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
                             ],
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
                           // Bewertungen
                           _buildReviewRating(
@@ -570,33 +612,33 @@ class ApartmentDetailScreen extends StatelessWidget {
                             'Gesamtbewertung',
                             overallRating,
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                           _buildReviewRating(
                             context,
                             'Preis-/Leistung',
                             valueForMoneyRating,
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                           _buildReviewRating(
                             context,
                             'Vermieter',
                             landlordRating,
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
                           // Kommentar
                           if (comment.isNotEmpty)
                             Container(
-                              padding: EdgeInsets.all(12),
+                              padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                               decoration: BoxDecoration(
-                                color: Colors.grey[50],
-                                borderRadius: BorderRadius.circular(8),
+                                color: AppColors.cardBackground, // ✅ THEME FARBE
+                                borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                               ),
                               child: Text(
                                 comment,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black87,
+                                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                  color: AppColors.textPrimary, // ✅ THEME FARBE
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -616,7 +658,7 @@ class ApartmentDetailScreen extends StatelessWidget {
                 ),
 
               // Bewertung abgeben Button - MIT Tenant Verification
-              SizedBox(height: 24),
+              SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
               _buildActionCard(
                 context,
                 icon: Icons.add_comment,
@@ -657,9 +699,11 @@ class ApartmentDetailScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -669,30 +713,36 @@ class ApartmentDetailScreen extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Icon(
                     icon,
-                    color: Theme.of(context).primaryColor,
+                    color: AppColors.primary, // ✅ THEME FARBE
                     size: 20,
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                 Expanded(
                   child: Text(
                     title,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               content,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Center(child: buildStarRating(rating, '')),
           ],
         ),
@@ -707,9 +757,11 @@ class ApartmentDetailScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -718,9 +770,9 @@ class ApartmentDetailScreen extends StatelessWidget {
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[700],
+                  color: AppColors.textSecondary, // ✅ THEME FARBE
                 ),
               ),
             ),
@@ -738,7 +790,13 @@ class ApartmentDetailScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+        Text(
+          title, 
+          style: TextStyle(
+            fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+            color: AppColors.textSecondary, // ✅ THEME FARBE
+          ),
+        ),
         buildStarRating(rating, ''),
       ],
     );
@@ -752,26 +810,31 @@ class ApartmentDetailScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.all(AppSpacing.xl), // ✅ THEME ABSTAND
         child: Column(
           children: [
-            Icon(icon, size: 48, color: Colors.grey[400]),
-            SizedBox(height: 16),
+            Icon(icon, size: 48, color: AppColors.textDisabled), // ✅ THEME FARBE
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             Text(
               title,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
+                color: AppColors.textSecondary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textDisabled, // ✅ THEME FARBE
+              ),
             ),
           ],
         ),
@@ -791,37 +854,57 @@ class ApartmentDetailScreen extends StatelessWidget {
       width: double.infinity, // Volle Breite
       child: Card(
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+        ),
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(AppSpacing.xl), // ✅ THEME ABSTAND
           child: Column(
             children: [
-              Icon(icon, size: 40, color: Theme.of(context).primaryColor),
-              SizedBox(height: 16),
+              Icon(
+                icon, 
+                size: 40, 
+                color: AppColors.primary, // ✅ THEME FARBE
+              ),
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary, // ✅ THEME FARBE
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                  color: AppColors.textSecondary, // ✅ THEME FARBE
+                ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: AppSpacing.xl), // ✅ THEME ABSTAND
               ElevatedButton(
                 onPressed: onPressed,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl, // ✅ THEME ABSTAND
+                    vertical: AppSpacing.m, // ✅ THEME ABSTAND
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(AppRadius.xl), // ✅ THEME RADIUS
+                  ),
+                  backgroundColor: AppColors.accent, // ✅ THEME FARBE
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  buttonText, 
+                  style: TextStyle(
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: Text(buttonText, style: TextStyle(fontSize: 16)),
               ),
             ],
           ),

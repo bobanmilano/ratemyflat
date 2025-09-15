@@ -15,6 +15,7 @@ import 'package:immo_app/services/data_processing_service.dart';
 import 'package:immo_app/services/image_upload_service.dart';
 import 'package:immo_app/services/apartment_service.dart';
 import 'package:immo_app/screens/tenant_verification_screen.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
@@ -187,7 +188,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                 content: Text(
                   'Wohnungslimit erreicht: Maximal 3 Wohnungen pro Woche',
                 ),
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.warning, // ✅ THEME FARBE
               ),
             );
           }
@@ -284,14 +285,17 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
           '❌ Diese Wohnung existiert bereits!\n\n'
           'Jede Wohnung darf nur EINMAL angelegt werden.\n'
           'Fügen Sie Ihre Bewertung auf der Detailseite hinzu.',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+            fontWeight: FontWeight.bold,
+          ),
         ),
         action: SnackBarAction(
           label: 'ZUR WOHNUNG',
           onPressed: _navigateToExistingApartment,
           textColor: Colors.white,
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error, // ✅ THEME FARBE
         duration: Duration(seconds: 30), // Wird später überschrieben
         behavior: SnackBarBehavior.floating,
       ),
@@ -348,7 +352,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Wohnung nicht gefunden'),
-                    backgroundColor: Colors.orange,
+                    backgroundColor: AppColors.warning, // ✅ THEME FARBE
                   ),
                 );
               }
@@ -368,7 +372,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Fehler beim Laden der Wohnung: $error'),
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.error, // ✅ THEME FARBE
                 ),
               );
             }
@@ -443,7 +447,11 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
             // Update die Snackbar mit Fortschrittsmeldung
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message), duration: Duration(seconds: 2)),
+              SnackBar(
+                content: Text(message), 
+                duration: Duration(seconds: 2),
+                backgroundColor: AppColors.primary, // ✅ THEME FARBE
+              ),
             );
           },
         );
@@ -543,7 +551,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Wohnung erfolgreich hinzugefügt.'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success, // ✅ THEME FARBE
         ),
       );
 
@@ -553,13 +561,19 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
 
   void _showValidationError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message), 
+        backgroundColor: AppColors.error, // ✅ THEME FARBE
+      ),
     );
   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message), 
+        backgroundColor: AppColors.error, // ✅ THEME FARBE
+      ),
     );
   }
 
@@ -577,9 +591,13 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Wohnung hinzufügen'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Wohnung hinzufügen'), 
+        centerTitle: true,
+        // Entfernt explizite Farbzuweisungen - verwendet Theme
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -594,7 +612,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
               onCountryChanged: (value) =>
                   setState(() => _selectedCountry = value),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             EntitySelector(
               entityType: 'landlords',
               selectedEntityId: _selectedLandlordId,
@@ -606,28 +624,28 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
               placeholderText: 'Vermieter auswählen',
               createButtonText: 'Neuen Vermieter erstellen',
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             RatingsSection(ratings: _ratings, isLandlord: false),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             ImageSection(
               imageFiles: _imageFiles,
               onImagesChanged: (files) => setState(() => _imageFiles = files),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             CommentsSection(controller: _additionalCommentsController),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _saveApartment,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  padding: EdgeInsets.symmetric(
+                    vertical: AppSpacing.m, // ✅ THEME ABSTAND
                   ),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                  ),
+                  // Entfernt explizite Farbzuweisungen - verwendet Theme
                 ),
                 child: _isLoading
                     ? Row(
@@ -637,11 +655,11 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                             color: Colors.white,
                             strokeWidth: 2,
                           ),
-                          SizedBox(width: 12),
+                          SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                           Text(
                             'Speichern...',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -651,7 +669,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                     : Text(
                         'Wohnung speichern',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),

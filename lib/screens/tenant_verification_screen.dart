@@ -1,5 +1,6 @@
 // lib/screens/tenant_verification_screen.dart
 import 'package:flutter/material.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class TenantVerificationScreen extends StatefulWidget {
   final bool isApartment;
@@ -26,57 +27,77 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
         title: Text(
           widget.isApartment ? 'Wohnung bewerten' : 'Vermieter bewerten',
         ),
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
       ),
       body: SingleChildScrollView(
         // ScrollView hinzugefügt
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Bestätigung',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               'Für: ${widget.targetName}',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             Container(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange),
+                color: AppColors.warning.withOpacity(0.1), // ✅ THEME FARBE
+                borderRadius: BorderRadius.circular(
+                  AppRadius.medium,
+                ), // ✅ THEME RADIUS
+                border: Border.all(color: AppColors.warning), // ✅ THEME FARBE
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info_rounded, color: Colors.green, size: 20),
-                      SizedBox(width: 8),
+                      Icon(
+                        Icons.info_rounded,
+                        color: AppColors.success, // ✅ THEME FARBE
+                        size: 20,
+                      ),
+                      SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                       Text(
                         'Wichtige Hinweise',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      color: AppColors.primary.withOpacity(
+                        0.1,
+                      ), // ✅ THEME FARBE
+                      borderRadius: BorderRadius.circular(
+                        AppRadius.medium,
+                      ), // ✅ THEME RADIUS
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(
+                          0.3,
+                        ), // ✅ THEME FARBE
+                      ),
                     ),
                     child: Text(
                       'Unser Ziel ist es Mietern eine faire, aktuelle und objektive '
@@ -84,13 +105,13 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
                       'Bitte beachten Sie bei Ihrer Beurteilung folgende Punkte:',
                       style: TextStyle(
                         fontWeight: FontWeight.normal,
-                        fontSize: 12,
-                        color: Colors.blue[800],
+                        fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                        color: AppColors.primary, // ✅ THEME FARBE
                       ),
                       textAlign: TextAlign.left,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
                   _buildVerificationPoint(
                     'Persönliche Erfahrung',
@@ -115,12 +136,15 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             CheckboxListTile(
               title: Text(
                 'Ich bestätige, dass ich Mieter bin/war und die Angaben wahr sind',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               value: _isChecked,
               onChanged: (value) {
@@ -133,29 +157,33 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
               dense: true, // Kompakter
             ),
 
-            SizedBox(height: 16),
-
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+            // Kompakte Button-Leiste
             // Kompakte Button-Leiste
             Row(
               children: [
                 Expanded(
-                  child: SizedBox(
-                    height: 40, // Feste Höhe
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Abbrechen', style: TextStyle(fontSize: 14)),
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Abbrechen',
+                      style: TextStyle(fontSize: AppTypography.bodySmall),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: AppSpacing.s),
                 Expanded(
-                  child: SizedBox(
-                    height: 40, // Feste Höhe
-                    child: ElevatedButton(
-                      onPressed: _isChecked
-                          ? () => Navigator.pop(context, true)
-                          : null,
-                      child: Text('Weiter', style: TextStyle(fontSize: 14)),
+                  child: ElevatedButton(
+                    onPressed: _isChecked
+                        ? () => Navigator.pop(context, true)
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      'Weiter',
+                      style: TextStyle(fontSize: AppTypography.bodySmall),
                     ),
                   ),
                 ),
@@ -169,23 +197,33 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
 
   Widget _buildVerificationPoint(String title, String description) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: AppSpacing.s), // ✅ THEME ABSTAND
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle, color: Colors.green, size: 16),
-          SizedBox(width: 8),
+          Icon(
+            Icons.check_circle,
+            color: AppColors.success, // ✅ THEME FARBE
+            size: 16,
+          ),
+          SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                  ),
                 ),
                 Text(
                   description,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
+                    color: AppColors.textSecondary, // ✅ THEME FARBE
+                  ),
                 ),
               ],
             ),

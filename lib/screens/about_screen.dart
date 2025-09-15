@@ -1,5 +1,6 @@
 // lib/screens/about_screen.dart
 import 'package:flutter/material.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({Key? key}) : super(key: key);
@@ -7,9 +8,14 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Über uns'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Über uns'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -19,7 +25,7 @@ class AboutScreen extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
                   borderRadius: BorderRadius.circular(60),
                 ),
                 child: ClipRRect(
@@ -33,17 +39,18 @@ class AboutScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Hauptüberschrift
             Text(
               'Die Mission von RateMyFlat',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary, // ✅ THEME FARBE
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Beschreibungstext
             Text(
@@ -51,9 +58,12 @@ class AboutScreen extends StatelessWidget {
               'dass jeder Mieter das Recht auf eine faire und transparente '
               'Wohnungssuche hat. Unser Ziel ist es, die Macht des Wissens '
               'zurück an die Mieter zu geben.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Hauptpunkte als Karten
             _buildInfoCard(
@@ -66,7 +76,7 @@ class AboutScreen extends StatelessWidget {
                   'und Erfahrungsberichte können Sie fundierte Entscheidungen treffen.',
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             _buildInfoCard(
               context,
@@ -79,7 +89,7 @@ class AboutScreen extends StatelessWidget {
                   'ihrer Entscheidungsfindung.',
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             _buildInfoCard(
               context,
@@ -91,16 +101,18 @@ class AboutScreen extends StatelessWidget {
                   'Transparenz im Mietmarkt und verhindern betrügerische Praktiken.',
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Zusätzliche Punkte
             Text(
               'Weitere Vorteile',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             _buildFeatureItem(
               context,
@@ -132,59 +144,68 @@ class AboutScreen extends StatelessWidget {
               'Ihre Daten gehören Ihnen - wir respektieren Ihre Privatsphäre',
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Abschluss-Text
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
+                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
               ),
               child: Column(
                 children: [
                   Icon(
                     Icons.handshake,
                     size: 40,
-                    color: Theme.of(context).primaryColor,
+                    color: AppColors.primary, // ✅ THEME FARBE
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                   Text(
                     'Gemeinsam für faire Mietbedingungen!',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                      color: AppColors.primary, // ✅ THEME FARBE
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                   Text(
                     'Treten Sie unserer Community bei und tragen Sie dazu bei, '
                     'den Mietmarkt transparenter und fairer zu machen.',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: TextStyle(
+                      fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                      color: AppColors.textPrimary, // ✅ THEME FARBE
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
 
             // Kontakt-Info (optional)
             Text(
               'Haben Sie Fragen oder Feedback?',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               'Wir freuen uns über Ihre Rückmeldung! Kontaktieren Sie uns über '
               'die Einstellungen oder schreiben Sie uns direkt eine E-Mail-Nachricht.',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
             ),
 
-            SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
           ],
         ),
       ),
@@ -199,28 +220,42 @@ class AboutScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 32, color: Theme.of(context).primaryColor),
-                SizedBox(width: 12),
+                Icon(
+                  icon, 
+                  size: 32, 
+                  color: AppColors.primary, // ✅ THEME FARBE
+                ),
+                SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary, // ✅ THEME FARBE
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
-            Text(content, style: Theme.of(context).textTheme.bodyMedium),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
+            Text(
+              content, 
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textPrimary, // ✅ THEME FARBE
+              ),
+            ),
           ],
         ),
       ),
@@ -233,31 +268,34 @@ class AboutScreen extends StatelessWidget {
     String subtitle,
   ) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: AppSpacing.s), // ✅ THEME ABSTAND
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             Icons.check_circle,
-            color: Theme.of(context).primaryColor,
+            color: AppColors.primary, // ✅ THEME FARBE
             size: 20,
           ),
-          SizedBox(width: 12),
+          SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary, // ✅ THEME FARBE
+                  ),
                 ),
                 Text(
                   subtitle,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                    color: AppColors.textSecondary, // ✅ THEME FARBE
+                  ),
                 ),
               ],
             ),

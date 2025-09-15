@@ -6,6 +6,7 @@ import 'package:immo_app/screens/tenant_verification_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/screens/add_landlord_review_screen.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class LandlordDetailScreen extends StatelessWidget {
   final DocumentSnapshot landlordDoc;
@@ -84,11 +85,23 @@ class LandlordDetailScreen extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (int i = 0; i < fullStars; i++)
-          Icon(Icons.star, color: Colors.orange, size: 24),
+          Icon(
+            Icons.star, 
+            color: AppColors.starActive, // ✅ THEME FARBE
+            size: 24,
+          ),
         if (fractionalPart == 0.5)
-          Icon(Icons.star_half, color: Colors.orange, size: 24),
+          Icon(
+            Icons.star_half, 
+            color: AppColors.starActive, // ✅ THEME FARBE
+            size: 24,
+          ),
         for (int i = 0; i < emptyStars; i++)
-          Icon(Icons.star_border, color: Colors.grey, size: 24),
+          Icon(
+            Icons.star_border, 
+            color: AppColors.starInactive, // ✅ THEME FARBE
+            size: 24,
+          ),
       ],
     );
   }
@@ -162,147 +175,154 @@ class LandlordDetailScreen extends StatelessWidget {
     final hasImages = imageUrls != null && imageUrls.isNotEmpty;
     final firstImageUrl = hasImages ? imageUrls![0] : null;
 
-return Scaffold(
-  appBar: AppBar(title: Text('Vermieter Details'), centerTitle: true),
-  body: SingleChildScrollView(
-    padding: EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Gallery of Images - MIT CONSISTENT DESIGN
-        SizedBox(
-          height: 200,
-          child: hasImages
-              ? (imageUrls!.length == 1
-                  ? // Einzelnes Bild - zentriert
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        _showImageDialog(context, imageUrls[0]);
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          imageUrls[0],
-                          height: 200,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                'assets/landlord_placeholder.png',
-                                height: 200,
-                                fit: BoxFit.contain,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  )
-                  : // Mehrere Bilder - horizontales Scrollen
-                  ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: imageUrls.length,
-                    itemBuilder: (context, index) {
-                      final imageUrl = imageUrls[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            _showImageDialog(context, imageUrl);
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              imageUrl,
-                              width: 150,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    'assets/landlord_placeholder.png',
-                                    width: 150,
-                                    height: 150,
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ))
-              : // Keine Bilder
-              Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return Dialog(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Vermieter Details'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Gallery of Images - MIT CONSISTENT DESIGN
+            SizedBox(
+              height: 200,
+              child: hasImages
+                  ? (imageUrls!.length == 1
+                        ? // Einzelnes Bild - zentriert
+                          Center(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.pop(context);
+                                _showImageDialog(context, imageUrls[0]);
                               },
-                              child: InteractiveViewer(
-                                boundaryMargin: EdgeInsets.all(20.0),
-                                minScale: 0.1,
-                                maxScale: 4.0,
-                                child: Image.asset(
-                                  'assets/landlord_placeholder.png',
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                                child: Image.network(
+                                  imageUrls[0],
+                                  height: 200,
                                   fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return ClipRRect(
+                                      borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                                      child: Image.asset(
+                                        'assets/landlord_placeholder.png',
+                                        height: 200,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
+                          )
+                        : // Mehrere Bilder - horizontales Scrollen
+                          ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: imageUrls.length,
+                            itemBuilder: (context, index) {
+                              final imageUrl = imageUrls[index];
+                              return Padding(
+                                padding: EdgeInsets.only(right: AppSpacing.s), // ✅ THEME ABSTAND
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _showImageDialog(context, imageUrl);
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                                    child: Image.network(
+                                      imageUrl,
+                                      width: 150,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            AppRadius.medium, // ✅ THEME RADIUS
+                                          ),
+                                          child: Image.asset(
+                                            'assets/landlord_placeholder.png',
+                                            width: 150,
+                                            height: 150,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ))
+                  : // Keine Bilder
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return Dialog(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: InteractiveViewer(
+                                    boundaryMargin: EdgeInsets.all(20.0),
+                                    minScale: 0.1,
+                                    maxScale: 4.0,
+                                    child: Image.asset(
+                                      'assets/landlord_placeholder.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        'assets/landlord_placeholder.png',
-                        height: 200,
-                        fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                          child: Image.asset(
+                            'assets/landlord_placeholder.png',
+                            height: 200,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-        ),
-        SizedBox(height: 16),
+            ),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // VERMIETER-ADRESSE ALS CARD MIT LOCATION ICON
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
               ),
               child: Container(
                 width: double.infinity,
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         landlordData['name'] ?? 'Unbekannter Vermieter',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                       buildStarRating(overallRating),
                     ],
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             ...categories.map((category) {
               final fieldName = categoryMapping[category];
@@ -317,29 +337,35 @@ return Scaffold(
                     children: [
                       Text(
                         category,
-                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                        style: TextStyle(
+                          fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                          color: AppColors.textSecondary, // ✅ THEME FARBE
+                        ),
                       ),
                       buildStarRating(averageRating),
                     ],
                   ),
                   SizedBox(
-                    height: 16,
-                  ), // Verdoppelter Abstand (vorher 12, jetzt 24)
+                    height: AppSpacing.m, // ✅ THEME ABSTAND
+                  ),
                 ],
               );
             }).toList(),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Wohnungen des Vermieters
             _buildApartmentsSection(landlordDoc.id),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Einzelbewertungen
             Text(
               'MIETERKOMMENTARE:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             if (reviews != null && reviews.isNotEmpty)
               ...reviews.map((review) {
                 // Extrahiere Review-Daten
@@ -355,11 +381,11 @@ return Scaffold(
                 return Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                   ),
-                  margin: EdgeInsets.symmetric(vertical: 8),
+                  margin: EdgeInsets.symmetric(vertical: AppSpacing.s), // ✅ THEME ABSTAND
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -377,7 +403,7 @@ return Scaffold(
                                   ? Icon(Icons.person, size: 20)
                                   : null,
                             ),
-                            SizedBox(width: 12),
+                            SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                             // Username und Datum
                             Expanded(
                               child: Column(
@@ -387,14 +413,14 @@ return Scaffold(
                                     isAnonymous ? 'Anonymous' : username,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                     ),
                                   ),
                                   Text(
                                     formattedDate,
                                     style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                                      color: AppColors.textSecondary, // ✅ THEME FARBE
+                                      fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
                                     ),
                                   ),
                                 ],
@@ -404,25 +430,25 @@ return Scaffold(
                             if (isAnonymous)
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                  horizontal: AppSpacing.s, // ✅ THEME ABSTAND
+                                  vertical: AppSpacing.xs, // ✅ THEME ABSTAND
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: AppColors.cardBackground, // ✅ THEME FARBE
+                                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                                 ),
                                 child: Text(
                                   'Anonym',
                                   style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 10,
+                                    color: AppColors.textSecondary, // ✅ THEME FARBE
+                                    fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                           ],
                         ),
-                        SizedBox(height: 12),
+                        SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
                         // Gesamtbewertung
                         Row(
@@ -431,28 +457,28 @@ return Scaffold(
                             Text(
                               'Gesamtbewertung:',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
+                                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                color: AppColors.textSecondary, // ✅ THEME FARBE
                               ),
                             ),
                             buildStarRating(overallRating),
                           ],
                         ),
-                        SizedBox(height: 12),
+                        SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
                         // Kommentar
                         if (comment.isNotEmpty)
                           Container(
-                            padding: EdgeInsets.all(12),
+                            padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                             decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(8),
+                              color: AppColors.cardBackground, // ✅ THEME FARBE
+                              borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                             ),
                             child: Text(
                               comment,
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black87,
+                                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                color: AppColors.textPrimary, // ✅ THEME FARBE
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -466,31 +492,34 @@ return Scaffold(
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: EdgeInsets.all(AppSpacing.xl), // ✅ THEME ABSTAND
                   child: Column(
                     children: [
                       Icon(
                         Icons.comment_outlined,
                         size: 48,
-                        color: Colors.grey[400],
+                        color: AppColors.textDisabled, // ✅ THEME FARBE
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
                       Text(
                         'Keine Bewertungen',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[600],
+                          color: AppColors.textSecondary, // ✅ THEME FARBE
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                       Text(
                         'Dieser Vermieter wurde noch nicht bewertet.\nSeien Sie der Erste, der eine Bewertung abgibt!',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                          color: AppColors.textDisabled, // ✅ THEME FARBE
+                        ),
                       ),
                     ],
                   ),
@@ -498,7 +527,7 @@ return Scaffold(
               ),
 
             // Bewertung abgeben Button - MIT TENANT VERIFICATION
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -524,14 +553,19 @@ return Scaffold(
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.m), // ✅ THEME ABSTAND
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                   ),
+                  backgroundColor: AppColors.accent, // ✅ THEME FARBE
+                  foregroundColor: Colors.white,
                 ),
                 child: Text(
                   'Neue Bewertung verfassen',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -548,9 +582,12 @@ return Scaffold(
       children: [
         Text(
           'Wohnungen dieses Vermieters:',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        SizedBox(height: 12),
+        SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('apartments')
@@ -568,7 +605,7 @@ return Scaffold(
             if (snapshot.data!.docs.isEmpty) {
               return Text(
                 'Zu diesem Vermieter sind noch keine Wohnungen verlinkt',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
               );
             }
 
@@ -592,11 +629,11 @@ return Scaffold(
 
                   return Container(
                     width: 120,
-                    margin: EdgeInsets.only(right: 10),
+                    margin: EdgeInsets.only(right: AppSpacing.s), // ✅ THEME ABSTAND
                     child: Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                       ),
                       child: InkWell(
                         onTap: () {
@@ -614,7 +651,7 @@ return Scaffold(
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(8),
+                                top: Radius.circular(AppRadius.medium), // ✅ THEME RADIUS
                               ),
                               child: imageUrl != null
                                   ? Image.network(
@@ -639,13 +676,13 @@ return Scaffold(
                                     ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(6.0),
+                              padding: EdgeInsets.all(AppSpacing.xs), // ✅ THEME ABSTAND
                               child: Text(
                                 address.length > 30
                                     ? '${address.substring(0, 30)}...'
                                     : address,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
                                   fontWeight: FontWeight.bold,
                                 ),
                                 maxLines: 2,

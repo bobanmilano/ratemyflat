@@ -6,7 +6,8 @@ import 'package:immo_app/screens/about_screen.dart';
 import 'package:immo_app/screens/apartment_list_screen.dart';
 import 'package:immo_app/screens/landlord_list_screen.dart';
 import 'package:immo_app/screens/settings_screen.dart';
-import 'package:immo_app/screens/login_screen.dart'; // Neuer Import
+import 'package:immo_app/screens/login_screen.dart';
+import 'package:immo_app/theme/app_theme_config.dart'; // Neuer Import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,10 +47,9 @@ class ImmoRateApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Mietwohnungs Bewertung',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: AppThemeConfig.lightTheme, // ✅ Zentrales Theme
       home: AuthWrapper(), // Neue Wrapper-Widget für Auth-Check
       debugShowCheckedModeBanner: false,
     );

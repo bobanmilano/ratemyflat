@@ -1,8 +1,10 @@
 // lib/screens/apartment_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import 'package:immo_app/screens/add_apartment_screen.dart';
 import 'package:immo_app/screens/apartment_details_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // ✅ NEU HINZUGEFÜGT
 
 class ApartmentListScreen extends StatefulWidget {
   @override
@@ -15,7 +17,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
   String _searchQuery = '';
   List<String> _cities = [];
   bool _isLoadingCities = false;
-  
+
   // Sortieroptionen
   String _sortBy = 'address'; // 'address', 'rating', 'newest'
   bool _sortAscending = true;
@@ -177,29 +179,31 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
       filteredApartments.sort((a, b) {
         final dataA = a.data() as Map<String, dynamic>;
         final dataB = b.data() as Map<String, dynamic>;
-        
+
         switch (_sortBy) {
           case 'address':
             final addressA = dataA['addresslong'] ?? '';
             final addressB = dataB['addresslong'] ?? '';
-            return _sortAscending 
+            return _sortAscending
                 ? addressA.toString().compareTo(addressB.toString())
                 : addressB.toString().compareTo(addressA.toString());
-                
+
           case 'rating':
             final ratingA = calculateOverallRating(dataA['reviews'] ?? []);
             final ratingB = calculateOverallRating(dataB['reviews'] ?? []);
-            return _sortAscending 
+            return _sortAscending
                 ? ratingB.compareTo(ratingA) // Höchste Bewertung zuerst
                 : ratingA.compareTo(ratingB);
-                
+
           case 'newest':
-            final dateA = (dataA['createdAt'] as Timestamp?)?.toDate() ?? DateTime(0);
-            final dateB = (dataB['createdAt'] as Timestamp?)?.toDate() ?? DateTime(0);
-            return _sortAscending 
+            final dateA =
+                (dataA['createdAt'] as Timestamp?)?.toDate() ?? DateTime(0);
+            final dateB =
+                (dataB['createdAt'] as Timestamp?)?.toDate() ?? DateTime(0);
+            return _sortAscending
                 ? dateB.compareTo(dateA) // Neueste zuerst
                 : dateA.compareTo(dateB);
-                
+
           default:
             return 0;
         }
@@ -472,9 +476,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
         decoration: InputDecoration(
           hintText: 'Straße oder Adresse suchen...',
           prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: Icon(Icons.clear),
@@ -520,8 +522,8 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
             _selectedCity != null
                 ? 'Keine Wohnungen in $_selectedCity gefunden'
                 : _searchQuery.isNotEmpty
-                    ? 'Keine Wohnungen für "$_searchQuery" gefunden'
-                    : 'Keine Wohnungen gefunden',
+                ? 'Keine Wohnungen für "$_searchQuery" gefunden'
+                : 'Keine Wohnungen gefunden',
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 16),
@@ -572,12 +574,32 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                 child: imageUrl != null
+                    // ✅ EINFACHERE LÖSUNG MIT TRADITIONELLEM IMAGE.NETWORK
                     ? Image.network(
                         imageUrl,
                         height: 100,
                         width: double.infinity,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: Colors.grey[300],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
                         errorBuilder: (context, error, stackTrace) {
+                          print('Bild-Fehler: $error'); // Debug-Ausgabe
+                          print('Bild-URL: $imageUrl'); // Debug-Ausgabe
                           return Image.asset(
                             'assets/apartment-placeholder.jpeg',
                             height: 100,
@@ -634,16 +656,25 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
     );
   }
 
+  // Füge diese Methode irgendwo in deine Klasse ein
+  Future<bool> _testImageUrl(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      print('URL Test - Status: ${response.statusCode}, URL: $url');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('URL Test - Fehler: $e, URL: $url');
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Apartments'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.sort),
-            onPressed: _showSortDialog,
-          ),
+          IconButton(icon: Icon(Icons.sort), onPressed: _showSortDialog),
           IconButton(
             icon: Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
@@ -654,7 +685,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
         children: [
           // Suchleiste
           _buildSearchBar(),
-          
+
           // Aktive Filter anzeigen
           if (_selectedCity != null)
             Container(
@@ -714,7 +745,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
             context,
             MaterialPageRoute(builder: (context) => AddApartmentScreen()),
           );
-          
+
           // Wenn eine neue Wohnung erfolgreich erstellt wurde, aktualisiere die Liste
           if (result != null && result is Map && result['success'] == true) {
             // Force refresh der Liste

@@ -1,10 +1,17 @@
 // lib/screens/settings_screen.dart
+import 'dart:async';
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:immo_app/screens/legal_screen.dart';
 import 'package:immo_app/screens/login_screen.dart';
 import 'package:immo_app/screens/profile_edit_screen.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -13,10 +20,12 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Einstellungen'),
         centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -36,8 +45,7 @@ class SettingsScreen extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 16),
-
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
               // App-Einstellungen
               _buildSectionHeader('App-Einstellungen'),
               _buildSettingsCard(
@@ -50,7 +58,7 @@ class SettingsScreen extends StatelessWidget {
                   _showFeatureComingSoon(context);
                 },
               ),
-              SizedBox(height: 8),
+              SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
               _buildSettingsCard(
                 context,
                 icon: Icons.language,
@@ -61,8 +69,7 @@ class SettingsScreen extends StatelessWidget {
                   _showFeatureComingSoon(context);
                 },
               ),
-              SizedBox(height: 16),
-
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
               // Rechtliches
               _buildSectionHeader('Rechtliches'),
               _buildSettingsCard(
@@ -74,12 +81,13 @@ class SettingsScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => LegalScreen(documentType: 'privacy'),
+                      builder: (context) =>
+                          LegalScreen(documentType: 'privacy'),
                     ),
                   );
                 },
               ),
-              SizedBox(height: 8),
+              SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
               _buildSettingsCard(
                 context,
                 icon: Icons.gavel,
@@ -94,7 +102,7 @@ class SettingsScreen extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 8),
+              SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
               _buildSettingsCard(
                 context,
                 icon: Icons.info,
@@ -104,26 +112,27 @@ class SettingsScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => LegalScreen(documentType: 'imprint'),
+                      builder: (context) =>
+                          LegalScreen(documentType: 'imprint'),
                     ),
                   );
                 },
               ),
-              SizedBox(height: 16),
-
+              SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
               // Account-Aktionen
               _buildSectionHeader('Account'),
               _buildSettingsCard(
                 context,
                 icon: Icons.delete,
                 title: 'Account löschen',
-                subtitle: 'Account löschen, Bewertungen bleiben anonym erhalten',
+                subtitle:
+                    'Account löschen, Bewertungen bleiben anonym erhalten',
                 onTap: () {
                   _showDeleteAccountDialog(context);
                 },
                 isDanger: true,
               ),
-              SizedBox(height: 8),
+              SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
               _buildSettingsCard(
                 context,
                 icon: Icons.exit_to_app,
@@ -134,8 +143,7 @@ class SettingsScreen extends StatelessWidget {
                 },
                 isDanger: true,
               ),
-              SizedBox(height: 32),
-
+              SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
               // App-Informationen
               _buildAppInfoSection(context),
             ],
@@ -148,13 +156,13 @@ class SettingsScreen extends StatelessWidget {
   // Header für Einstellungsabschnitte
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: EdgeInsets.only(bottom: AppSpacing.s), // ✅ THEME ABSTAND
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 18,
+          fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
           fontWeight: FontWeight.bold,
-          color: Colors.blue,
+          color: AppColors.primary, // ✅ THEME FARBE
         ),
       ),
     );
@@ -171,34 +179,44 @@ class SettingsScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: ListTile(
         leading: Icon(
           icon,
-          color: isDanger ? Colors.red : Theme.of(context).primaryColor,
+          color: isDanger
+              ? AppColors.error
+              : AppColors.primary, // ✅ THEME FARBE
           size: 32,
         ),
         title: Text(
           title,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isDanger ? Colors.red : Colors.black87,
+            color: isDanger
+                ? AppColors.error
+                : AppColors.textPrimary, // ✅ THEME FARBE
           ),
         ),
         subtitle: Text(
           subtitle,
           style: TextStyle(
-            fontSize: 12,
-            color: isDanger ? Colors.red.withOpacity(0.7) : Colors.grey[600],
+            fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+            color: isDanger
+                ? AppColors.error.withOpacity(0.7) // ✅ THEME FARBE
+                : AppColors.textSecondary, // ✅ THEME FARBE
           ),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: isDanger ? Colors.red : Colors.grey,
+          color: isDanger
+              ? AppColors.error
+              : AppColors.textSecondary, // ✅ THEME FARBE
         ),
         onTap: onTap,
-        contentPadding: EdgeInsets.all(16),
+        contentPadding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
       ),
     );
   }
@@ -207,30 +225,38 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildAppInfoSection(BuildContext context) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'App-Informationen',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               'Version: 1.0.0',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
             ),
-            SizedBox(height: 4),
+            SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
             Text(
               'Build: ${DateTime.now().year}.${DateTime.now().month}.${DateTime.now().day}',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               '© ${DateTime.now().year} RateMyFlat. Alle Rechte vorbehalten.',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: TextStyle(
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+              ),
             ),
           ],
         ),
@@ -260,57 +286,65 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // Methode zum Ausloggen
-// Methode zum Ausloggen - KORRIGIERT
-void _showLogoutDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text('Abmelden'),
-        content: Text(
-          'Möchten Sie sich wirklich von Ihrem Account abmelden?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Abbrechen'),
+  // Methode zum Ausloggen - KORRIGIERT
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Abmelden'),
+          content: Text(
+            'Möchten Sie sich wirklich von Ihrem Account abmelden?',
           ),
-          TextButton(
-            onPressed: () async {
-              try {
-                await FirebaseAuth.instance.signOut();
-                Navigator.pop(context); // Schließe den Dialog
-                
-                // WICHTIG: Navigiere explizit zum Login-Screen
-                // Lösche alle bisherigen Routes und gehe zum Login
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()), // ODER deine Login-Screen-Klasse
-                  (route) => false,
-                );
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erfolgreich abgemeldet')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pop(context); // Schließe den Dialog
+
+                  // WICHTIG: Navigiere explizit zum Login-Screen
+                  // Lösche alle bisherigen Routes und gehe zum Login
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginScreen(),
+                    ), // ODER deine Login-Screen-Klasse
+                    (route) => false,
                   );
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erfolgreich abgemeldet'),
+                        backgroundColor: AppColors.success, // ✅ THEME FARBE
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  Navigator.pop(context); // Schließe den Dialog
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Fehler beim Abmelden'),
+                        backgroundColor: AppColors.error, // ✅ THEME FARBE
+                      ),
+                    );
+                  }
+                  print('Fehler beim Ausloggen: $e');
                 }
-              } catch (e) {
-                Navigator.pop(context); // Schließe den Dialog
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Fehler beim Abmelden')),
-                  );
-                }
-                print('Fehler beim Ausloggen: $e');
-              }
-            },
-            child: Text('Abmelden'),
-          ),
-        ],
-      );
-    },
-  );
-}
+              },
+              child: Text('Abmelden'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // Account-Löschungsdialog
   void _showDeleteAccountDialog(BuildContext context) {
@@ -327,35 +361,34 @@ void _showLogoutDialog(BuildContext context) {
     );
   }
 
-  // Account-Löschungslogik
-// In deiner _deleteUserAccount Methode:
+ // Account-Löschungslogik
 Future<void> _deleteUserAccount(BuildContext context) async {
   final User? currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) return;
 
-  // Zeige Fortschrittsdialog
+  // Referenz zum Dialog-Kontext speichern
   BuildContext? dialogContext;
-  
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext buildContext) {
-      dialogContext = buildContext;
-      return AlertDialog(
-        title: Text('Lösche Account...'),
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 20),
-            Text('Bitte warten...'),
-          ],
-        ),
-      );
-    },
-  );
 
   try {
-    // Warte kurz damit der Dialog sicher angezeigt wird
+    // Zeige ersten Fortschrittsdialog und speichere den Kontext
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext buildContext) {
+        dialogContext = buildContext; // Speichere den Dialog-Kontext
+        return AlertDialog(
+          title: Text('Lösche Account...'),
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: AppSpacing.s),
+              Text('Bitte warten...'),
+            ],
+          ),
+        );
+      },
+    );
+
     await Future.delayed(Duration(milliseconds: 100));
 
     // 1. Anonymisiere alle Bewertungen des Users
@@ -367,42 +400,168 @@ Future<void> _deleteUserAccount(BuildContext context) async {
         .doc(currentUser.uid)
         .delete();
 
-    // 3. WICHTIG: Lösche den Firebase Auth Account
-    await currentUser.delete();
 
-    // Schließe Fortschrittsdialog
-    if (dialogContext != null && Navigator.canPop(dialogContext!)) {
-      Navigator.pop(dialogContext!);
-    }
+    // 3. Versuche den Firebase Auth Account zu löschen - ERSTER VERSUCH
+    bool deletionSuccessful = false;
+    bool requiresReauth = false;
 
-    // Zeige Erfolgsmeldung
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Account erfolgreich gelöscht. Bewertungen bleiben anonym erhalten.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
-
-  } catch (e) {
-    // Schließe Fortschrittsdialog bei Fehler
     try {
-      if (dialogContext != null && Navigator.canPop(dialogContext!)) {
-        Navigator.pop(dialogContext!);
+      final freshUser = FirebaseAuth.instance.currentUser;
+      if (freshUser != null) {
+        await freshUser.delete();
+        deletionSuccessful = true;
       }
-    } catch (dialogError) {
-      // Ignoriere Fehler beim Schließen
+    } on FirebaseAuthException catch (authError) {
+      if (authError.code == 'requires-recent-login') {
+        requiresReauth = true;
+      } else {
+        rethrow;
+      }
     }
-    
-    print('Fehler beim Löschen des Accounts: $e');
-    
-    // Zeige Fehlermeldung
+
+    // Schließe den ersten Dialog mit dem gespeicherten Kontext
+    if (dialogContext != null && dialogContext!.mounted) {
+      Navigator.of(dialogContext!, rootNavigator: true).pop();
+    } else if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+
+    // Wenn Re-Auth benötigt wird
+    if (requiresReauth) {
+      final bool reauthSuccess = await _showReauthenticateDialog(context);
+
+      if (reauthSuccess) {
+        BuildContext? secondDialogContext;
+        
+        // Zeige zweiten Fortschrittsdialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext buildContext) {
+            secondDialogContext = buildContext; // Speichere den Dialog-Kontext
+            return AlertDialog(
+              title: Text('Lösche Account...'),
+              content: Row(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: AppSpacing.s),
+                  Text('Bitte warten...'),
+                ],
+              ),
+            );
+          },
+        );
+
+        await Future.delayed(Duration(milliseconds: 100));
+
+        // ZWEITTER VERSUCH: Account löschen
+        final secondUser = FirebaseAuth.instance.currentUser;
+        if (secondUser != null) {
+          await secondUser.delete();
+        }
+
+        // Schließe zweiten Dialog mit dem gespeicherten Kontext
+        if (secondDialogContext != null && secondDialogContext!.mounted) {
+          Navigator.of(secondDialogContext!, rootNavigator: true).pop();
+        } else if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        deletionSuccessful = true;
+      } else {
+        // User hat abgebrochen
+        return;
+      }
+    }
+
+    // Zeige Erfolgsmeldung und führe Logout durch
+    if (deletionSuccessful) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Account erfolgreich gelöscht. Bewertungen bleiben anonym erhalten.',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+
+      // Warte kurz damit der SnackBar angezeigt wird
+      await Future.delayed(Duration(seconds: 2));
+
+
+      // App schließen statt zur Login-Seite navigieren
+  try {
+    // Plattformübergreifende Methode
+    SystemNavigator.pop();
+  } catch (e) {
+    print('Fehler beim Schließen der App: $e');
+    // Fallback für Android
+    try {
+      if (Platform.isAndroid) {
+        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      }
+    } catch (fallbackError) {
+      print('Fallback Fehler: $fallbackError');
+      // Letzter Ausweg
+      if (Platform.isAndroid) {
+        exit(0);
+      }
+    }
+  }
+
+      // Führe den gleichen Logout-Prozess wie in _showLogoutDialog durch
+      if (context.mounted) {
+        Navigator.pop(context); // Schließe den Settings-Screen wenn nötig
+        
+        // WICHTIG: Navigiere explizit zum Login-Screen
+        // Lösche alle bisherigen Routes und gehe zum Login
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(),
+          ),
+          (route) => false,
+        );
+      }
+    }
+  } catch (e) {
+    // Schließe alle offenen Dialoge
+    try {
+      // Schließe den aktuellen Dialog
+      if (dialogContext != null && dialogContext!.mounted) {
+        Navigator.of(dialogContext!, rootNavigator: true).pop();
+      } else if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    } catch (_) {}
+
     if (context.mounted) {
+      String errorMessage = 'Fehler beim Löschen des Accounts';
+
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'requires-recent-login':
+            errorMessage =
+                'Sie müssen sich erneut anmelden, um den Account zu löschen';
+            break;
+          case 'user-not-found':
+            errorMessage = 'Benutzer nicht gefunden';
+            break;
+          default:
+            errorMessage = e.message ?? 'Unbekannter Fehler beim Löschen';
+        }
+      } else {
+        errorMessage = e.toString().contains(': ')
+            ? e.toString().split(': ').last
+            : e.toString();
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Fehler beim Löschen des Accounts: ${e.toString().split(': ').last}'),
-          backgroundColor: Colors.red,
+          content: Text(errorMessage),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -412,16 +571,288 @@ Future<void> _deleteUserAccount(BuildContext context) async {
   // Anonymisiere User-Bewertungen
   Future<void> _anonymizeUserReviews(String userId) async {
     try {
-      // 1. Anonymisiere Bewertungen in Apartments
+      print('Starte Anonymisierung für userId: $userId');
+
+      // 1. Anonymisiere Bewertungen in Apartments - Durchsuche alle Dokumente
       final apartmentSnapshot = await FirebaseFirestore.instance
           .collection('apartments')
-          .where('userId', isEqualTo: userId)
           .get();
 
+      print('Durchsuche ${apartmentSnapshot.docs.length} Apartments');
+
       for (var doc in apartmentSnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        try {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) continue;
+
+          final reviews = data['reviews'] as List<dynamic>? ?? [];
+          if (reviews.isEmpty) continue;
+
+          bool needsUpdate = false;
+          final updatedReviews = <Map<String, dynamic>>[];
+
+          for (var review in reviews) {
+            if (review is Map<String, dynamic>) {
+              if (review['userId'] == userId) {
+                // Anonymisiere diese Bewertung
+                final anonymizedReview = Map<String, dynamic>.from(review);
+                anonymizedReview['userId'] = 'anonymous';
+                anonymizedReview['username'] = 'Anonymous';
+                anonymizedReview['profileImageUrl'] = '';
+                anonymizedReview['isAnonymous'] = true;
+                updatedReviews.add(anonymizedReview);
+                needsUpdate = true;
+                print('Anonymisiere Bewertung in Apartment ${doc.id}');
+              } else {
+                updatedReviews.add(review);
+              }
+            } else {
+              updatedReviews.add(review);
+            }
+          }
+
+          if (needsUpdate) {
+            await FirebaseFirestore.instance
+                .collection('apartments')
+                .doc(doc.id)
+                .update({'reviews': updatedReviews});
+            print('Aktualisierte Bewertungen in Apartment ${doc.id}');
+          }
+        } catch (e) {
+          print('Fehler beim Verarbeiten von Apartment ${doc.id}: $e');
+        }
+      }
+
+      // 2. Anonymisiere Bewertungen in Landlords - Durchsuche alle Dokumente
+      final landlordSnapshot = await FirebaseFirestore.instance
+          .collection('landlords')
+          .get();
+
+      print('Durchsuche ${landlordSnapshot.docs.length} Landlords');
+
+      for (var doc in landlordSnapshot.docs) {
+        try {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) continue;
+
+          final reviews = data['reviews'] as List<dynamic>? ?? [];
+          if (reviews.isEmpty) continue;
+
+          bool needsUpdate = false;
+          final updatedReviews = <Map<String, dynamic>>[];
+
+          for (var review in reviews) {
+            if (review is Map<String, dynamic>) {
+              if (review['userId'] == userId) {
+                // Anonymisiere diese Bewertung
+                final anonymizedReview = Map<String, dynamic>.from(review);
+                anonymizedReview['userId'] = 'anonymous';
+                anonymizedReview['username'] = 'Anonymous';
+                anonymizedReview['profileImageUrl'] = '';
+                anonymizedReview['isAnonymous'] = true;
+                updatedReviews.add(anonymizedReview);
+                needsUpdate = true;
+                print('Anonymisiere Bewertung in Landlord ${doc.id}');
+              } else {
+                updatedReviews.add(review);
+              }
+            } else {
+              updatedReviews.add(review);
+            }
+          }
+
+          if (needsUpdate) {
+            await FirebaseFirestore.instance
+                .collection('landlords')
+                .doc(doc.id)
+                .update({'reviews': updatedReviews});
+            print('Aktualisierte Bewertungen in Landlord ${doc.id}');
+          }
+        } catch (e) {
+          print('Fehler beim Verarbeiten von Landlord ${doc.id}: $e');
+        }
+      }
+
+      print('Anonymisierung abgeschlossen');
+    } catch (e) {
+      print('Schwerwiegender Fehler beim Anonymisieren der Bewertungen: $e');
+      // Nicht kritisch - der Account kann trotzdem gelöscht werden
+    }
+  }
+
+  // Re-Authentifizierungsdialog
+  Future<bool> _showReauthenticateDialog(BuildContext context) async {
+    final TextEditingController _passwordController = TextEditingController();
+    final Completer<bool> completer = Completer<bool>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Erneute Anmeldung erforderlich'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Aus Sicherheitsgründen müssen Sie sich erneut anmelden, um Ihren Account zu löschen.',
+              ),
+              SizedBox(height: AppSpacing.m),
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Passwort',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                  ),
+                ),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                completer.complete(false);
+              },
+              child: Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_passwordController.text.isEmpty) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(
+                      content: Text('Bitte geben Sie Ihr Passwort ein'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                  return;
+                }
+
+                // Zeige Fortschrittsdialog
+                Navigator.pop(dialogContext); // Schließe Reauth-Dialog
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext progressDialogContext) {
+                    return AlertDialog(
+                      title: Text('Anmeldung...'),
+                      content: Row(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: AppSpacing.s),
+                          Text('Bitte warten...'),
+                        ],
+                      ),
+                    );
+                  },
+                );
+
+                try {
+                  final User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null && user.email != null) {
+                    final credential = EmailAuthProvider.credential(
+                      email: user.email!,
+                      password: _passwordController.text,
+                    );
+
+                    await user.reauthenticateWithCredential(credential);
+
+                    // Schließe Fortschrittsdialog
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erfolgreich angemeldet.'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+
+                    completer.complete(true);
+                  } else {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                    completer.complete(false);
+                  }
+                } catch (e) {
+                  // Schließe Fortschrittsdialog
+                  try {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                  } catch (_) {}
+
+                  if (context.mounted) {
+                    String errorMessage = 'Fehler bei der Anmeldung';
+                    if (e is FirebaseAuthException) {
+                      if (e.code == 'wrong-password') {
+                        errorMessage = 'Falsches Passwort';
+                      } else if (e.code == 'user-not-found') {
+                        errorMessage = 'User nicht gefunden';
+                      } else {
+                        errorMessage = e.message ?? 'Anmeldefehler';
+                      }
+                    } else {
+                      errorMessage = e.toString().contains(': ')
+                          ? e.toString().split(': ').last
+                          : 'Anmeldefehler';
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMessage),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+
+                  completer.complete(false);
+                }
+              },
+              child: Text('Anmelden'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Dispose des Controllers nach Abschluss
+    completer.future.whenComplete(() {
+      _passwordController.dispose();
+    });
+
+    return completer.future;
+  }
+}
+
+// Anonymisiere User-Bewertungen
+Future<void> _anonymizeUserReviews(String userId) async {
+  try {
+    print('Starte Anonymisierung für userId: $userId');
+
+    // 1. Anonymisiere Bewertungen in Apartments - Durchsuche alle Dokumente
+    final apartmentSnapshot = await FirebaseFirestore.instance
+        .collection('apartments')
+        .get();
+
+    print('Durchsuche ${apartmentSnapshot.docs.length} Apartments');
+
+    for (var doc in apartmentSnapshot.docs) {
+      try {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data == null) continue;
+
         final reviews = data['reviews'] as List<dynamic>? ?? [];
-        
+        if (reviews.isEmpty) continue;
+
         bool needsUpdate = false;
         final updatedReviews = <Map<String, dynamic>>[];
 
@@ -436,9 +867,12 @@ Future<void> _deleteUserAccount(BuildContext context) async {
               anonymizedReview['isAnonymous'] = true;
               updatedReviews.add(anonymizedReview);
               needsUpdate = true;
+              print('Anonymisiere Bewertung in Apartment ${doc.id}');
             } else {
               updatedReviews.add(review);
             }
+          } else {
+            updatedReviews.add(review);
           }
         }
 
@@ -447,19 +881,28 @@ Future<void> _deleteUserAccount(BuildContext context) async {
               .collection('apartments')
               .doc(doc.id)
               .update({'reviews': updatedReviews});
+          print('Aktualisierte Bewertungen in Apartment ${doc.id}');
         }
+      } catch (e) {
+        print('Fehler beim Verarbeiten von Apartment ${doc.id}: $e');
       }
+    }
 
-      // 2. Anonymisiere Bewertungen in Landlords
-      final landlordSnapshot = await FirebaseFirestore.instance
-          .collection('landlords')
-          .where('userId', isEqualTo: userId)
-          .get();
+    // 2. Anonymisiere Bewertungen in Landlords - Durchsuche alle Dokumente
+    final landlordSnapshot = await FirebaseFirestore.instance
+        .collection('landlords')
+        .get();
 
-      for (var doc in landlordSnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+    print('Durchsuche ${landlordSnapshot.docs.length} Landlords');
+
+    for (var doc in landlordSnapshot.docs) {
+      try {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data == null) continue;
+
         final reviews = data['reviews'] as List<dynamic>? ?? [];
-        
+        if (reviews.isEmpty) continue;
+
         bool needsUpdate = false;
         final updatedReviews = <Map<String, dynamic>>[];
 
@@ -474,9 +917,12 @@ Future<void> _deleteUserAccount(BuildContext context) async {
               anonymizedReview['isAnonymous'] = true;
               updatedReviews.add(anonymizedReview);
               needsUpdate = true;
+              print('Anonymisiere Bewertung in Landlord ${doc.id}');
             } else {
               updatedReviews.add(review);
             }
+          } else {
+            updatedReviews.add(review);
           }
         }
 
@@ -485,13 +931,17 @@ Future<void> _deleteUserAccount(BuildContext context) async {
               .collection('landlords')
               .doc(doc.id)
               .update({'reviews': updatedReviews});
+          print('Aktualisierte Bewertungen in Landlord ${doc.id}');
         }
+      } catch (e) {
+        print('Fehler beim Verarbeiten von Landlord ${doc.id}: $e');
       }
-
-    } catch (e) {
-      print('Fehler beim Anonymisieren der Bewertungen: $e');
-      // Nicht kritisch - der Account kann trotzdem gelöscht werden
     }
+
+    print('Anonymisierung abgeschlossen');
+  } catch (e) {
+    print('Schwerwiegender Fehler beim Anonymisieren der Bewertungen: $e');
+    // Nicht kritisch - der Account kann trotzdem gelöscht werden
   }
 }
 
@@ -499,7 +949,8 @@ Future<void> _deleteUserAccount(BuildContext context) async {
 class DeleteAccountDialog extends StatefulWidget {
   final Function()? onDeleteConfirmed;
 
-  const DeleteAccountDialog({Key? key, this.onDeleteConfirmed}) : super(key: key);
+  const DeleteAccountDialog({Key? key, this.onDeleteConfirmed})
+    : super(key: key);
 
   @override
   _DeleteAccountDialogState createState() => _DeleteAccountDialogState();
@@ -557,10 +1008,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     '• Ihr Account und alle persönlichen Daten werden gelöscht\n'
                     '• Ihre Bewertungen bleiben anonym erhalten\n'
                     '• Dieser Vorgang kann nicht rückgängig gemacht werden',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.orange),
                   ),
                 ],
               ),
@@ -591,7 +1039,9 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Bitte geben Sie "LÖSCHEN" ein, um zu bestätigen'),
+                  content: Text(
+                    'Bitte geben Sie "LÖSCHEN" ein, um zu bestätigen',
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );

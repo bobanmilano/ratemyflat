@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/screens/add_landlord_screen.dart';
 import 'package:immo_app/screens/landlord_details_screen.dart';
 import 'package:immo_app/screens/tenant_verification_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // ✅ NEU HINZUGEFÜGT
+import 'dart:ui';
 
 class LandlordListScreen extends StatefulWidget {
   @override
@@ -49,7 +51,7 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
   // Erste Ladung der Vermieter
   Future<void> _loadLandlords() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -59,7 +61,7 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
       if (_searchQuery.isNotEmpty) {
         final snapshot = await _firestore.collection('landlords').get();
         final filteredDocs = _filterLandlords(snapshot.docs);
-        
+
         setState(() {
           _landlords = filteredDocs;
           _hasMore = false; // Keine weitere Pagination bei Suchfilter
@@ -67,11 +69,11 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
         });
         return;
       }
-      
+
       // Ohne Suchfilter: Normale Pagination
       Query query = _firestore.collection('landlords').limit(_limit);
       final snapshot = await query.get();
-      
+
       setState(() {
         _landlords = snapshot.docs;
         _lastDocument = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
@@ -89,7 +91,7 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
   // Weitere Vermieter laden (Pagination)
   Future<void> _loadMoreLandlords() async {
     if (_isLoading || !_hasMore) return;
-    
+
     // Bei Suchfilter keine weitere Pagination
     if (_searchQuery.isNotEmpty) {
       setState(() {
@@ -97,18 +99,19 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
       });
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      Query query = _firestore.collection('landlords')
+      Query query = _firestore
+          .collection('landlords')
           .startAfterDocument(_lastDocument!)
           .limit(_limit);
-      
+
       final snapshot = await query.get();
-      
+
       setState(() {
         _landlords.addAll(snapshot.docs);
         _lastDocument = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
@@ -130,20 +133,24 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
     }
 
     final normalizedQuery = _searchQuery.toLowerCase().trim();
-    
+
     return landlords.where((landlordDoc) {
       final landlord = landlordDoc.data() as Map<String, dynamic>;
       final name = landlord['name'] as String?;
-      
+
       if (name == null) return false;
-      
+
       final normalizedName = name.toLowerCase();
-      
+
       // Teile den Suchbegriff in Wörter auf
-      final queryWords = normalizedQuery.split(' ').where((word) => word.isNotEmpty);
-      
+      final queryWords = normalizedQuery
+          .split(' ')
+          .where((word) => word.isNotEmpty);
+
       // Prüfe ob alle Suchwörter im Namen vorkommen
-      return queryWords.every((queryWord) => normalizedName.contains(queryWord));
+      return queryWords.every(
+        (queryWord) => normalizedName.contains(queryWord),
+      );
     }).toList();
   }
 
@@ -156,55 +163,6 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
       _landlords.clear();
     });
     _loadLandlords();
-  }
-
-  // Filter-Dialog anzeigen
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final searchController = TextEditingController(text: _searchQuery);
-        
-        return AlertDialog(
-          title: Text('Filter'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  labelText: 'Name suchen',
-                  hintText: 'Vorname, Nachname oder voller Name...',
-                  prefixIcon: Icon(Icons.search),
-                ),
-                autofocus: true,
-                onSubmitted: (value) {
-                  _applyFilter(value);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                searchController.clear();
-                _applyFilter('');
-                Navigator.pop(context);
-              },
-              child: Text('Zurücksetzen'),
-            ),
-            TextButton(
-              onPressed: () {
-                _applyFilter(searchController.text);
-                Navigator.pop(context);
-              },
-              child: Text('Anwenden'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   // Methode zur Berechnung der Durchschnittsbewertung
@@ -304,143 +262,147 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
     );
   }
 
+  Widget _buildLandlordCard(DocumentSnapshot landlordDoc) {
+    final landlord = landlordDoc.data() as Map<String, dynamic>;
+    final overallRating = _calculateOverallRating(landlord);
+    final List<dynamic>? imageUrls = landlord['imageUrls'];
+    final hasImages = imageUrls != null && imageUrls.isNotEmpty;
+    final firstImageUrl = hasImages ? imageUrls![0] : null;
 
-Widget _buildLandlordCard(DocumentSnapshot landlordDoc) {
-  final landlord = landlordDoc.data() as Map<String, dynamic>;
-  final overallRating = _calculateOverallRating(landlord);
-  final List<dynamic>? imageUrls = landlord['imageUrls'];
-  final hasImages = imageUrls != null && imageUrls.isNotEmpty;
-  final firstImageUrl = hasImages ? imageUrls![0] : null;
-
-  return Card(
-    elevation: 4,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                LandlordDetailScreen(landlordDoc: landlordDoc),
-          ),
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-            child: firstImageUrl != null
-                ? Container(
-                    height: 100,
-                    width: double.infinity,
-                    child: FutureBuilder<Rect?>(
-                      future: _detectFace(firstImageUrl),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        
-                        return Image.network(
-                          firstImageUrl,
-                          fit: BoxFit.contain,
-                          alignment: snapshot.hasData && snapshot.data != null 
-                            ? _getFaceAlignment(snapshot.data!) 
-                            : Alignment.center,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[300],
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.grey[600],
-                                size: 40,
-                              ),
-                            );
-                          },
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  LandlordDetailScreen(landlordDoc: landlordDoc),
+            ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+              child: firstImageUrl != null
+                  // ✅ KORRIGIERTES LAZY LOADING MIT IMAGE.NETWORK
+                  ? Image.network(
+                      firstImageUrl,
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 100,
+                          width: double.infinity,
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          ),
                         );
                       },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 100,
+                          width: double.infinity,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.grey[600],
+                            size: 40,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 100,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.grey[600],
+                        size: 40,
+                      ),
                     ),
-                  )
-                : Container(
-                    height: 100,
-                    width: double.infinity,
-                    color: Colors.grey[300],
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.grey[600],
-                      size: 40,
-                    ),
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  landlord['name'] ?? 'Unbekannter Vermieter',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 8),
-                _buildStarRating(overallRating),
-                SizedBox(height: 4),
-                Text(
-                  '${landlord['reviews']?.length ?? 0} Bewertungen',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    landlord['name'] ?? 'Unbekannter Vermieter',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8),
+                  _buildStarRating(overallRating),
+                  SizedBox(height: 4),
+                  Text(
+                    '${landlord['reviews']?.length ?? 0} Bewertungen',
+                    style: TextStyle(color: Colors.grey, fontSize: 10),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-Future<Rect?> _detectFace(String imageUrl) async {
-  try {
-    // Für eine vollständige Implementierung benötigst du das Google ML Kit Setup
-    // Dies ist ein vereinfachter Ansatz
-    return null;
-  } catch (e) {
-    print('Fehler bei Gesichtserkennung: $e');
-    return null;
+    );
   }
-}
 
-Alignment _getFaceAlignment(Rect faceRect) {
-  // Berechne die Ausrichtung basierend auf der Gesichtsposition
-  // Dies ist eine vereinfachte Version
-  return Alignment.center;
-}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Vermieter'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
-          ),
-        ],
+        // Entfernt das Filter-Icon aus der AppBar
       ),
       body: Column(
         children: [
+          // ✅ SUCHLEISTE WIE BEI DEN APARTMENTS
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Name suchen...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          _applyFilter('');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+                // Debounce für bessere Performance
+                Future.delayed(Duration(milliseconds: 300), () {
+                  if (value == _searchQuery) {
+                    _loadLandlords();
+                  }
+                });
+              },
+            ),
+          ),
           // Aktive Filter anzeigen
           if (_searchQuery.isNotEmpty)
             Container(
@@ -479,13 +441,15 @@ Alignment _getFaceAlignment(Rect faceRect) {
                         mainAxisSpacing: 10,
                       ),
                       padding: EdgeInsets.all(16),
-                      itemCount: _landlords.length + (_hasMore && _searchQuery.isEmpty ? 1 : 0),
+                      itemCount:
+                          _landlords.length +
+                          (_hasMore && _searchQuery.isEmpty ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index >= _landlords.length) {
                           // Loading-Indicator am Ende
                           return _buildLoadingIndicator();
                         }
-                        
+
                         final landlordDoc = _landlords[index];
                         return _buildLandlordCard(landlordDoc);
                       },
@@ -496,20 +460,15 @@ Alignment _getFaceAlignment(Rect faceRect) {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddLandlordScreen()),
+          );
 
-
-         // if (confirmed == true) {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddLandlordScreen()),
-            );
-            
-            // Wenn ein neuer Vermieter erfolgreich erstellt wurde, aktualisiere die Liste
-            if (result != null && result is Map && result['success'] == true) {
-              // Force refresh der Liste
-              _applyFilter(_searchQuery);
-            }
-          //}
+          if (result != null && result is Map && result['success'] == true) {
+            _applyFilter(_searchQuery);
+          }
+  
         },
         child: Icon(Icons.add),
         tooltip: 'Vermieter hinzufügen',

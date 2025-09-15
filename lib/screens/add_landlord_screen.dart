@@ -9,6 +9,7 @@ import 'package:immo_app/screens/tenant_verification_screen.dart';
 import 'package:immo_app/services/image_upload_service.dart';
 import 'package:immo_app/services/rate_limit_service.dart';
 import 'package:immo_app/widgets/star_rating_widget.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class AddLandlordScreen extends StatefulWidget {
   const AddLandlordScreen({super.key});
@@ -140,7 +141,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               content: Text(
                 'Es können maximal 5 Bilder ausgewählt werden. ${images.length - 5} Bilder wurden ignoriert.',
               ),
-              backgroundColor: Colors.orange,
+              backgroundColor: AppColors.warning, // ✅ THEME FARBE
             ),
           );
         }
@@ -149,7 +150,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Fehler beim Auswählen der Bilder: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error, // ✅ THEME FARBE
         ),
       );
     }
@@ -192,7 +193,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
           content: Text(
             'Vermieterlimit erreicht: Maximal 5 Vermieter pro Woche',
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.warning, // ✅ THEME FARBE
         ),
       );
       return;
@@ -244,7 +245,11 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
             // Update snackbar with progress message
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message), duration: Duration(seconds: 2)),
+              SnackBar(
+                content: Text(message), 
+                duration: Duration(seconds: 2),
+                backgroundColor: AppColors.primary, // ✅ THEME FARBE
+              ),
             );
           },
         );
@@ -300,7 +305,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Vermieter erfolgreich hinzugefügt.'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success, // ✅ THEME FARBE
         ),
       );
 
@@ -322,13 +327,19 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
 
   void _showValidationError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message), 
+        backgroundColor: AppColors.error, // ✅ THEME FARBE
+      ),
     );
   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message), 
+        backgroundColor: AppColors.error, // ✅ THEME FARBE
+      ),
     );
   }
 
@@ -448,22 +459,29 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   Widget _buildNameSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Vermieter Information *',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Vermietername *',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                ),
                 hintText: 'z.B. Max Mustermann',
               ),
             ),
@@ -476,31 +494,38 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   Widget _buildApartmentsSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Wohnungen verknüpfen (optional)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             // Search field
             TextField(
               decoration: InputDecoration(
                 labelText: 'Wohnungen suchen',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                ),
                 hintText: 'Adresse, Stadt, PLZ eingeben...',
               ),
               onChanged: (value) {
                 _loadFilteredApartments(value);
               },
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             // Pagination controls
             if (_totalPages > 1)
@@ -509,7 +534,10 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 children: [
                   Text(
                     'Seite $_currentPage von $_totalPages',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                      color: AppColors.textSecondary, // ✅ THEME FARBE
+                    ),
                   ),
                   Row(
                     children: [
@@ -529,7 +557,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                   ),
                 ],
               ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             // Apartments list
             if (_isLoadingApartments)
@@ -537,7 +565,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 child: Column(
                   children: [
                     CircularProgressIndicator(),
-                    SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                     Text(
                       'Lade Wohnungen... (${_allApartments.length} gefunden)',
                     ),
@@ -549,9 +577,9 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 children: [
                   Text(
                     'Keine Wohnungen in der Datenbank gefunden',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                   TextButton(
                     onPressed: _loadApartments,
                     child: Text('Erneut versuchen'),
@@ -565,12 +593,15 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                     _apartmentSearchQuery.isNotEmpty
                         ? 'Keine Wohnungen für "${_apartmentSearchQuery}" gefunden'
                         : 'Keine Wohnungen verfügbar',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                   Text(
                     'Insgesamt ${_allApartments.length} Wohnungen geladen',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                      color: AppColors.textSecondary, // ✅ THEME FARBE
+                    ),
                   ),
                 ],
               )
@@ -579,9 +610,12 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 children: [
                   Text(
                     '${_filteredApartments.length} von ${_allApartments.length} Wohnungen',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                      color: AppColors.textSecondary, // ✅ THEME FARBE
+                    ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
                   Container(
                     height: 200,
                     child: ListView.builder(
@@ -596,7 +630,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                           margin: EdgeInsets.symmetric(vertical: 2),
                           elevation: isSelected ? 4 : 1,
                           color: isSelected
-                              ? Colors.blue.withOpacity(0.1)
+                              ? AppColors.primary.withOpacity(0.1) // ✅ THEME FARBE
                               : null,
                           child: ListTile(
                             contentPadding: EdgeInsets.symmetric(
@@ -618,14 +652,16 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                               '${apartment['zipCode']} ${apartment['city'] ?? ''}',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Colors.grey,
+                                color: AppColors.textSecondary, // ✅ THEME FARBE
                               ),
                             ),
                             trailing: Icon(
                               isSelected
                                   ? Icons.check_box
                                   : Icons.check_box_outline_blank,
-                              color: isSelected ? Colors.blue : Colors.grey,
+                              color: isSelected 
+                                  ? AppColors.primary // ✅ THEME FARBE
+                                  : AppColors.textSecondary, // ✅ THEME FARBE
                               size: 20,
                             ),
                             onTap: () {
@@ -644,10 +680,13 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                   ),
                 ],
               ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             Text(
               'Wählen Sie Wohnungen aus, die diesem Vermieter gehören',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+              ),
             ),
           ],
         ),
@@ -658,13 +697,15 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   Widget _buildRatingsSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             ..._ratings.keys.map((key) {
               return _buildRatingWidget(key);
             }).toList(),
@@ -715,7 +756,12 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
         onTap: () {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(_tooltipMessages[key] ?? '')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text(_tooltipMessages[key] ?? ''),
+              backgroundColor: AppColors.primary, // ✅ THEME FARBE
+            ),
+          );
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -725,13 +771,16 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               children: [
                 Text(
                   _ratingLabels[key] ?? key,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                SizedBox(width: 4),
-                Icon(Icons.help_outline, size: 16, color: Colors.grey),
+                SizedBox(width: AppSpacing.xs), // ✅ THEME ABSTAND
+                Icon(Icons.help_outline, size: 16, color: AppColors.textSecondary), // ✅ THEME FARBE
               ],
             ),
-            SizedBox(height: 4),
+            SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
             InteractiveStarRating(
               initialRating: _ratings[key] ?? 1,
               onRatingChanged: (rating) {
@@ -750,9 +799,11 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   Widget _buildImageSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -761,32 +812,40 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               children: [
                 Text(
                   'Bilder des Vermieters',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   '${_imageFiles.length}/5 Bilder',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: _imageFiles.length >= 5 ? Colors.red : Colors.grey,
+                    fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                    color: _imageFiles.length >= 5 
+                        ? AppColors.error // ✅ THEME FARBE
+                        : AppColors.textSecondary, // ✅ THEME FARBE
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             ElevatedButton(
               onPressed: _imageFiles.length >= 5 ? null : _pickImages,
               child: Text('Bilder auswählen (max. 5)'),
             ),
             if (_imageFiles.length >= 5)
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.only(top: AppSpacing.s), // ✅ THEME ABSTAND
                 child: Text(
                   'Maximale Anzahl von 5 Bildern erreicht',
-                  style: TextStyle(fontSize: 12, color: Colors.orange),
+                  style: TextStyle(
+                    fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                    color: AppColors.warning, // ✅ THEME FARBE
+                  ),
                 ),
               ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             if (_imageFiles.isNotEmpty)
               Wrap(
                 spacing: 8.0,
@@ -809,7 +868,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: Colors.grey[300]!,
+                              color: AppColors.textDisabled, // ✅ THEME FARBE
                               width: 1,
                             ),
                             borderRadius: BorderRadius.circular(4),
@@ -827,7 +886,10 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                           ),
                           child: Text(
                             '${index + 1}',
-                            style: TextStyle(color: Colors.white, fontSize: 10),
+                            style: TextStyle(
+                              color: Colors.white, 
+                              fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
+                            ),
                           ),
                         ),
                       ),
@@ -844,17 +906,22 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   Widget _buildCommentsSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Zusätzliche Kommentare *',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             TextField(
               controller: _additionalCommentsController,
               maxLines: null,
@@ -863,7 +930,9 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                ),
                 labelText: 'Kommentar *',
                 hintText: 'Beschreiben Sie Ihre Erfahrung mit dem Vermieter...',
                 alignLabelWithHint: true,
@@ -880,27 +949,32 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   Widget _buildAnonymitySection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Veröffentlichung',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
 
             // User-Info Card (wenn nicht anonym)
             if (!_isAnonymous)
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                   child: Row(
                     children: [
                       // Profilbild
@@ -913,7 +987,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                             ? Icon(Icons.person, size: 20)
                             : null,
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                       // Username und Erstellungsinfo
                       Expanded(
                         child: Column(
@@ -922,23 +996,23 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                             Text(
                               'Erstellt von:',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                color: AppColors.textSecondary, // ✅ THEME FARBE
                               ),
                             ),
                             Text(
                               _username,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
                             Text(
                               'Heute',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
+                                fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
+                                color: AppColors.textDisabled, // ✅ THEME FARBE
                               ),
                             ),
                           ],
@@ -948,7 +1022,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                   ),
                 ),
               ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             SwitchListTile(
               title: Text('Anonym veröffentlichen'),
@@ -967,25 +1041,34 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                 _isAnonymous ? Icons.visibility_off : Icons.visibility,
                 color: _isAnonymous
                     ? Colors.grey
-                    : Theme.of(context).primaryColor,
+                    : AppColors.primary, // ✅ THEME FARBE
               ),
             ),
             if (_isAnonymous)
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  color: AppColors.warning.withOpacity(0.1), // ✅ THEME FARBE
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                  border: Border.all(
+                    color: AppColors.warning.withOpacity(0.3), // ✅ THEME FARBE
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info, color: Colors.orange, size: 20),
-                    SizedBox(width: 12),
+                    Icon(
+                      Icons.info, 
+                      color: AppColors.warning, // ✅ THEME FARBE
+                      size: 20,
+                    ),
+                    SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                     Expanded(
                       child: Text(
                         'Ihre Bewertung wird anonym veröffentlicht. Sie hilft anderen Mietern, ohne Ihre Identität preiszugeben.',
-                        style: TextStyle(fontSize: 12, color: Colors.orange),
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                          color: AppColors.warning, // ✅ THEME FARBE
+                        ),
                       ),
                     ),
                   ],
@@ -1007,31 +1090,39 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Vermieter hinzufügen'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Vermieter hinzufügen'), 
+        centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildNameSection(),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             _buildApartmentsSection(),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             _buildRatingsSection(),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             _buildImageSection(),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             _buildCommentsSection(),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             _buildAnonymitySection(), // Neue Anonymität-Sektion mit Profilbild
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Hint for required fields
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.s), // ✅ THEME ABSTAND
               child: Text(
                 '* Pflichtfelder',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
+                  color: AppColors.textSecondary, // ✅ THEME FARBE
+                ),
               ),
             ),
 
@@ -1040,13 +1131,14 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _saveLandlord,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  padding: EdgeInsets.symmetric(
+                    vertical: AppSpacing.m, // ✅ THEME ABSTAND
                   ),
-                  backgroundColor: Theme.of(context).primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                  ),
+                  backgroundColor: AppColors.accent, // ✅ THEME FARBE
                   foregroundColor: Colors.white,
-                  elevation: 2,
                 ),
                 child: _isLoading
                     ? Row(
@@ -1056,11 +1148,11 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                             color: Colors.white,
                             strokeWidth: 2,
                           ),
-                          SizedBox(width: 12),
+                          SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                           Text(
                             'Speichern...',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -1070,7 +1162,7 @@ class _AddLandlordScreenState extends State<AddLandlordScreen> {
                     : Text(
                         'Vermieter speichern',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),

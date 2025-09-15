@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:immo_app/services/image_upload_service.dart';
 import 'package:immo_app/services/rate_limit_service.dart';
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -109,7 +110,7 @@ Future<String?> _uploadProfileImage(File imageFile) async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Profilbild-Limit erreicht: Nur einmal pro Woche möglich'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.warning, // ✅ THEME FARBE
         ),
       );
     }
@@ -144,7 +145,7 @@ Future<String?> _uploadProfileImage(File imageFile) async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Fehler beim Upload des Profilbildes'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error, // ✅ THEME FARBE
         ),
       );
     }
@@ -205,6 +206,8 @@ Future<String?> _uploadProfileImage(File imageFile) async {
       appBar: AppBar(
         title: Text('Profil bearbeiten'),
         centerTitle: true,
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
         actions: [
           IconButton(
             icon: Icon(Icons.save),
@@ -215,31 +218,31 @@ Future<String?> _uploadProfileImage(File imageFile) async {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Profilbild-Abschnitt
                   _buildProfileImageSection(),
-                  SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
                   
                   // Username-Abschnitt
                   _buildUsernameSection(),
-                  SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
                   
                   // Email-Anzeige (nicht editierbar)
                   _buildEmailSection(),
-                  SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
                   
                   // Speichern-Button
                  // Speichern-Button (konsistent mit App-Design)
 Container(
   width: double.infinity,
   decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(12),
+    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
     boxShadow: [
       BoxShadow(
-        color: Theme.of(context).primaryColor.withOpacity(0.3),
+        color: AppColors.primary.withOpacity(0.3), // ✅ THEME FARBE
         blurRadius: 4,
         offset: Offset(0, 2),
       ),
@@ -248,11 +251,14 @@ Container(
   child: ElevatedButton(
     onPressed: _isSaving || _isLoading ? null : _saveProfile,
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      padding: EdgeInsets.symmetric(
+        vertical: AppSpacing.m, // ✅ THEME ABSTAND
+        horizontal: AppSpacing.xl, // ✅ THEME ABSTAND
       ),
-      backgroundColor: Theme.of(context).primaryColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
+      backgroundColor: AppColors.primary, // ✅ THEME FARBE
       foregroundColor: Colors.white,
       elevation: 0, // Entferne Standard-Elevation
     ),
@@ -264,11 +270,11 @@ Container(
                 color: Colors.white,
                 strokeWidth: 2,
               ),
-              SizedBox(width: 12),
+              SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
               Text(
                 'Speichern...',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -278,7 +284,7 @@ Container(
         : Text(
             'Profil speichern',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
@@ -294,17 +300,22 @@ Container(
   Widget _buildProfileImageSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Profilbild',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             
             // Profilbild-Anzeige
             Center(
@@ -316,7 +327,10 @@ Container(
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey[300]!, width: 2),
+                      border: Border.all(
+                        color: AppColors.textDisabled, // ✅ THEME FARBE
+                        width: 2,
+                      ),
                     ),
                     child: ClipOval(
                       child: _profileImageFile != null
@@ -345,7 +359,7 @@ Container(
                     right: 0,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
+                        color: AppColors.primary, // ✅ THEME FARBE
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -359,7 +373,7 @@ Container(
               ),
             ),
             
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             
             // Bild-Ändern-Button
             Center(
@@ -373,7 +387,10 @@ Container(
             Center(
               child: Text(
                 'Unterstützte Formate: JPG, PNG (max. 5MB empfohlen)',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                  color: AppColors.textSecondary, // ✅ THEME FARBE
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -385,10 +402,10 @@ Container(
 
   Widget _buildProfileImagePlaceholder() {
     return Container(
-      color: Colors.grey[300],
+      color: AppColors.cardBackground, // ✅ THEME FARBE
       child: Icon(
         Icons.person,
-        color: Colors.grey[600],
+        color: AppColors.textSecondary, // ✅ THEME FARBE
         size: 50,
       ),
     );
@@ -397,24 +414,29 @@ Container(
   Widget _buildUsernameSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Benutzername',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Benutzername *',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                 ),
                 prefixIcon: Icon(Icons.person),
                 hintText: 'Geben Sie Ihren Benutzernamen ein',
@@ -423,11 +445,14 @@ Container(
               enabled: !_isSaving,
             ),
             
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             
             Text(
               'Ihr Benutzername wird in Bewertungen angezeigt',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textSecondary, // ✅ THEME FARBE
+              ),
             ),
           ],
         ),
@@ -438,32 +463,47 @@ Container(
   Widget _buildEmailSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'E-Mail Adresse',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.s, // ✅ THEME ABSTAND
+                vertical: AppSpacing.m, // ✅ THEME ABSTAND
+              ),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.textDisabled, // ✅ THEME FARBE
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
               ),
               child: Row(
                 children: [
-                  Icon(Icons.email, color: Colors.grey[600]),
-                  SizedBox(width: 12),
+                  Icon(
+                    Icons.email, 
+                    color: AppColors.textSecondary, // ✅ THEME FARBE
+                  ),
+                  SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                   Expanded(
                     child: Text(
                       _currentUser?.email ?? 'Keine E-Mail',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(
+                        fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                      ),
                     ),
                   ),
                 ],

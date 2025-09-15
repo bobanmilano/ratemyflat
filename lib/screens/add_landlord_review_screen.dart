@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:immo_app/screens/landlord_details_screen.dart';
 import 'package:immo_app/screens/tenant_verification_screen.dart';
 import 'package:immo_app/services/rate_limit_service.dart'; // Für Zufallsnamen
+import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
 
 class AddLandlordReviewScreen extends StatefulWidget {
   final DocumentSnapshot landlordDoc;
@@ -112,7 +113,7 @@ class _AddLandlordReviewScreenState extends State<AddLandlordReviewScreen> {
                 : _ratings[category]! >= starValue - 0.5
                 ? Icons.star_half
                 : Icons.star_border,
-            color: Colors.orange,
+            color: AppColors.starActive, // ✅ THEME FARBE
             size: 32,
           ),
           onPressed: () {
@@ -158,7 +159,7 @@ void _submitReview() async {
         content: Text(
           'Bewertungslimit erreicht: Maximal 8 Bewertungen pro Tag',
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.warning, // ✅ THEME FARBE
       ),
     );
     return;
@@ -184,7 +185,7 @@ void _submitReview() async {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Sie haben diesen Vermieter bereits bewertet!'),
-              backgroundColor: Colors.orange,
+              backgroundColor: AppColors.warning, // ✅ THEME FARBE
             ),
           );
           // Zurück zur Liste navigieren
@@ -207,7 +208,7 @@ void _submitReview() async {
         content: Text(
           'Bitte korrigieren Sie folgende Felder:\n• ${missingFields.join('\n• ')}',
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error, // ✅ THEME FARBE
       ),
     );
     return;
@@ -311,27 +312,34 @@ void _submitReview() async {
     final landlordName = landlordData['name'] ?? 'Unbekannter Vermieter';
 
     return Scaffold(
-      appBar: AppBar(title: Text('Bewertung abgeben')),
+      appBar: AppBar(
+        title: Text('Bewertung abgeben'),
+        backgroundColor: AppColors.primary, // ✅ THEME FARBE
+        foregroundColor: Colors.white, // ✅ THEME FARBE
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Deine Bewertung für $landlordName:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // User-Info Card (wenn nicht anonym)
             if (!_isAnonymous)
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                   child: Row(
                     children: [
                       // Profilbild
@@ -344,7 +352,7 @@ void _submitReview() async {
                             ? Icon(Icons.person, size: 20)
                             : null,
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                       // Username
                       Expanded(
                         child: Column(
@@ -353,14 +361,14 @@ void _submitReview() async {
                             Text(
                               'Bewertung von:',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                color: AppColors.textSecondary, // ✅ THEME FARBE
                               ),
                             ),
                             Text(
                               _username,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -371,7 +379,7 @@ void _submitReview() async {
                   ),
                 ),
               ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             ..._ratings.keys.map((key) {
               final categoryName = categoryMapping[key];
@@ -381,14 +389,14 @@ void _submitReview() async {
                     child: Text(
                       categoryName ?? key,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
                   buildStarRating(key),
-                  SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
                 ],
               );
             }).toList(),
@@ -396,9 +404,12 @@ void _submitReview() async {
             // Verbessertes Kommentarfeld
             Text(
               'Zusätzliche Kommentare *',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
             TextField(
               controller: _commentController,
               maxLines: null,
@@ -407,23 +418,25 @@ void _submitReview() async {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                ),
                 labelText: 'Kommentar *',
                 hintText: 'Beschreiben Sie Ihre Erfahrung mit dem Vermieter...',
                 alignLabelWithHint: true,
                 helperText: 'Mindestens 20, maximal 800 Zeichen',
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
 
             // Anonymität-Option
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
               ),
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                 child: Column(
                   children: [
                     SwitchListTile(
@@ -443,29 +456,33 @@ void _submitReview() async {
                         _isAnonymous ? Icons.visibility_off : Icons.visibility,
                         color: _isAnonymous
                             ? Colors.grey
-                            : Theme.of(context).primaryColor,
+                            : AppColors.primary, // ✅ THEME FARBE
                       ),
                     ),
                     if (_isAnonymous)
                       Container(
-                        padding: EdgeInsets.all(8),
+                        padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.warning.withOpacity(0.1), // ✅ THEME FARBE
+                          borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
                           border: Border.all(
-                            color: Colors.orange.withOpacity(0.3),
+                            color: AppColors.warning.withOpacity(0.3), // ✅ THEME FARBE
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info, color: Colors.orange, size: 16),
-                            SizedBox(width: 8),
+                            Icon(
+                              Icons.info, 
+                              color: AppColors.warning, // ✅ THEME FARBE
+                              size: 16,
+                            ),
+                            SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
                             Expanded(
                               child: Text(
                                 'Ihre Bewertung wird anonym veröffentlicht. Sie hilft anderen Mietern, ohne Ihre Identität preiszugeben.',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.orange,
+                                  fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+                                  color: AppColors.warning, // ✅ THEME FARBE
                                 ),
                               ),
                             ),
@@ -477,29 +494,33 @@ void _submitReview() async {
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             Text(
               '* Pflichtfeld',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: AppTypography.caption, // ✅ THEME TYPOGRAFIE
+                color: AppColors.textDisabled, // ✅ THEME FARBE
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _submitReview,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  padding: EdgeInsets.symmetric(
+                    vertical: AppSpacing.m, // ✅ THEME ABSTAND
                   ),
-                  backgroundColor: Theme.of(context).primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                  ),
+                  backgroundColor: AppColors.accent, // ✅ THEME FARBE
                   foregroundColor: Colors.white,
-                  elevation: 2,
                 ),
                 child: Text(
                   'Bewertung absenden',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
