@@ -10,6 +10,7 @@ import 'package:immo_app/screens/legal_screen.dart';
 import 'package:immo_app/screens/login_screen.dart';
 import 'package:immo_app/screens/profile_edit_screen.dart';
 import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
+import 'package:package_info_plus/package_info_plus.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -221,45 +222,53 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // App-Informationen
   Widget _buildAppInfoSection(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'App-Informationen',
-              style: TextStyle(
-                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
-                fontWeight: FontWeight.bold,
+    return Padding(
+      padding: EdgeInsets.all(AppSpacing.m),
+      child: FutureBuilder<PackageInfo>(
+        future: PackageInfo.fromPlatform(), // ✅ Einmalig ausführen
+        builder: (context, snapshot) {
+          String version = '1.0.0'; // Fallback
+          String buildNumber = '1'; // Fallback
+
+          if (snapshot.hasData) {
+            version = snapshot.data!.version;
+            buildNumber = snapshot.data!.buildNumber;
+          } else if (snapshot.hasError) {
+            print('Fehler beim Laden der App-Info: ${snapshot.error}');
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'App-Informationen',
+                style: TextStyle(
+                  fontSize: AppTypography.headline3,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
-            Text(
-              'Version: 1.0.0',
-              style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
-            ),
-            SizedBox(height: AppSpacing.xs), // ✅ THEME ABSTAND
-            Text(
-              'Build: ${DateTime.now().year}.${DateTime.now().month}.${DateTime.now().day}',
-              style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
-            ),
-            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
-            Text(
-              '© ${DateTime.now().year} RateMyFlat. Alle Rechte vorbehalten.',
-              style: TextStyle(
-                color: AppColors.textSecondary, // ✅ THEME FARBE
-                fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
+              SizedBox(height: AppSpacing.s),
+              Text(
+                'Version: $version', // ✅ Dynamisch
+                style: TextStyle(color: AppColors.textSecondary),
               ),
-            ),
-          ],
-        ),
+              SizedBox(height: AppSpacing.xs),
+              Text(
+                'Build: $buildNumber', // ✅ Dynamisch
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              SizedBox(height: AppSpacing.s),
+              Text(
+                '© ${DateTime.now().year} RateMyFlat. Alle Rechte vorbehalten.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: AppTypography.bodySmall,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -361,212 +370,209 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
- // Account-Löschungslogik
-Future<void> _deleteUserAccount(BuildContext context) async {
-  final User? currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser == null) return;
+  // Account-Löschungslogik
+  Future<void> _deleteUserAccount(BuildContext context) async {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
 
-  // Referenz zum Dialog-Kontext speichern
-  BuildContext? dialogContext;
-
-  try {
-    // Zeige ersten Fortschrittsdialog und speichere den Kontext
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext buildContext) {
-        dialogContext = buildContext; // Speichere den Dialog-Kontext
-        return AlertDialog(
-          title: Text('Lösche Account...'),
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: AppSpacing.s),
-              Text('Bitte warten...'),
-            ],
-          ),
-        );
-      },
-    );
-
-    await Future.delayed(Duration(milliseconds: 100));
-
-    // 1. Anonymisiere alle Bewertungen des Users
-    await _anonymizeUserReviews(currentUser.uid);
-
-    // 2. Lösche das User-Profil in Firestore
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUser.uid)
-        .delete();
-
-
-    // 3. Versuche den Firebase Auth Account zu löschen - ERSTER VERSUCH
-    bool deletionSuccessful = false;
-    bool requiresReauth = false;
+    // Referenz zum Dialog-Kontext speichern
+    BuildContext? dialogContext;
 
     try {
-      final freshUser = FirebaseAuth.instance.currentUser;
-      if (freshUser != null) {
-        await freshUser.delete();
-        deletionSuccessful = true;
-      }
-    } on FirebaseAuthException catch (authError) {
-      if (authError.code == 'requires-recent-login') {
-        requiresReauth = true;
-      } else {
-        rethrow;
-      }
-    }
-
-    // Schließe den ersten Dialog mit dem gespeicherten Kontext
-    if (dialogContext != null && dialogContext!.mounted) {
-      Navigator.of(dialogContext!, rootNavigator: true).pop();
-    } else if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-
-    // Wenn Re-Auth benötigt wird
-    if (requiresReauth) {
-      final bool reauthSuccess = await _showReauthenticateDialog(context);
-
-      if (reauthSuccess) {
-        BuildContext? secondDialogContext;
-        
-        // Zeige zweiten Fortschrittsdialog
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext buildContext) {
-            secondDialogContext = buildContext; // Speichere den Dialog-Kontext
-            return AlertDialog(
-              title: Text('Lösche Account...'),
-              content: Row(
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(width: AppSpacing.s),
-                  Text('Bitte warten...'),
-                ],
-              ),
-            );
-          },
-        );
-
-        await Future.delayed(Duration(milliseconds: 100));
-
-        // ZWEITTER VERSUCH: Account löschen
-        final secondUser = FirebaseAuth.instance.currentUser;
-        if (secondUser != null) {
-          await secondUser.delete();
-        }
-
-        // Schließe zweiten Dialog mit dem gespeicherten Kontext
-        if (secondDialogContext != null && secondDialogContext!.mounted) {
-          Navigator.of(secondDialogContext!, rootNavigator: true).pop();
-        } else if (context.mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
-        }
-
-        deletionSuccessful = true;
-      } else {
-        // User hat abgebrochen
-        return;
-      }
-    }
-
-    // Zeige Erfolgsmeldung und führe Logout durch
-    if (deletionSuccessful) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Account erfolgreich gelöscht. Bewertungen bleiben anonym erhalten.',
+      // Zeige ersten Fortschrittsdialog und speichere den Kontext
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext buildContext) {
+          dialogContext = buildContext; // Speichere den Dialog-Kontext
+          return AlertDialog(
+            title: Text('Lösche Account...'),
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: AppSpacing.s),
+                Text('Bitte warten...'),
+              ],
             ),
-            backgroundColor: AppColors.success,
-          ),
-        );
+          );
+        },
+      );
+
+      await Future.delayed(Duration(milliseconds: 100));
+
+      // 1. Anonymisiere alle Bewertungen des Users
+      await _anonymizeUserReviews(currentUser.uid);
+
+      // 2. Lösche das User-Profil in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .delete();
+
+      // 3. Versuche den Firebase Auth Account zu löschen - ERSTER VERSUCH
+      bool deletionSuccessful = false;
+      bool requiresReauth = false;
+
+      try {
+        final freshUser = FirebaseAuth.instance.currentUser;
+        if (freshUser != null) {
+          await freshUser.delete();
+          deletionSuccessful = true;
+        }
+      } on FirebaseAuthException catch (authError) {
+        if (authError.code == 'requires-recent-login') {
+          requiresReauth = true;
+        } else {
+          rethrow;
+        }
       }
 
-      // Warte kurz damit der SnackBar angezeigt wird
-      await Future.delayed(Duration(seconds: 2));
-
-
-      // App schließen statt zur Login-Seite navigieren
-  try {
-    // Plattformübergreifende Methode
-    SystemNavigator.pop();
-  } catch (e) {
-    print('Fehler beim Schließen der App: $e');
-    // Fallback für Android
-    try {
-      if (Platform.isAndroid) {
-        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-      }
-    } catch (fallbackError) {
-      print('Fallback Fehler: $fallbackError');
-      // Letzter Ausweg
-      if (Platform.isAndroid) {
-        exit(0);
-      }
-    }
-  }
-
-      // Führe den gleichen Logout-Prozess wie in _showLogoutDialog durch
-      if (context.mounted) {
-        Navigator.pop(context); // Schließe den Settings-Screen wenn nötig
-        
-        // WICHTIG: Navigiere explizit zum Login-Screen
-        // Lösche alle bisherigen Routes und gehe zum Login
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LoginScreen(),
-          ),
-          (route) => false,
-        );
-      }
-    }
-  } catch (e) {
-    // Schließe alle offenen Dialoge
-    try {
-      // Schließe den aktuellen Dialog
+      // Schließe den ersten Dialog mit dem gespeicherten Kontext
       if (dialogContext != null && dialogContext!.mounted) {
         Navigator.of(dialogContext!, rootNavigator: true).pop();
       } else if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
-    } catch (_) {}
 
-    if (context.mounted) {
-      String errorMessage = 'Fehler beim Löschen des Accounts';
+      // Wenn Re-Auth benötigt wird
+      if (requiresReauth) {
+        final bool reauthSuccess = await _showReauthenticateDialog(context);
 
-      if (e is FirebaseAuthException) {
-        switch (e.code) {
-          case 'requires-recent-login':
-            errorMessage =
-                'Sie müssen sich erneut anmelden, um den Account zu löschen';
-            break;
-          case 'user-not-found':
-            errorMessage = 'Benutzer nicht gefunden';
-            break;
-          default:
-            errorMessage = e.message ?? 'Unbekannter Fehler beim Löschen';
+        if (reauthSuccess) {
+          BuildContext? secondDialogContext;
+
+          // Zeige zweiten Fortschrittsdialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext buildContext) {
+              secondDialogContext =
+                  buildContext; // Speichere den Dialog-Kontext
+              return AlertDialog(
+                title: Text('Lösche Account...'),
+                content: Row(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: AppSpacing.s),
+                    Text('Bitte warten...'),
+                  ],
+                ),
+              );
+            },
+          );
+
+          await Future.delayed(Duration(milliseconds: 100));
+
+          // ZWEITTER VERSUCH: Account löschen
+          final secondUser = FirebaseAuth.instance.currentUser;
+          if (secondUser != null) {
+            await secondUser.delete();
+          }
+
+          // Schließe zweiten Dialog mit dem gespeicherten Kontext
+          if (secondDialogContext != null && secondDialogContext!.mounted) {
+            Navigator.of(secondDialogContext!, rootNavigator: true).pop();
+          } else if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          deletionSuccessful = true;
+        } else {
+          // User hat abgebrochen
+          return;
         }
-      } else {
-        errorMessage = e.toString().contains(': ')
-            ? e.toString().split(': ').last
-            : e.toString();
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      // Zeige Erfolgsmeldung und führe Logout durch
+      if (deletionSuccessful) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Account erfolgreich gelöscht. Bewertungen bleiben anonym erhalten.',
+              ),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+
+        // Warte kurz damit der SnackBar angezeigt wird
+        await Future.delayed(Duration(seconds: 2));
+
+        // App schließen statt zur Login-Seite navigieren
+        try {
+          // Plattformübergreifende Methode
+          SystemNavigator.pop();
+        } catch (e) {
+          print('Fehler beim Schließen der App: $e');
+          // Fallback für Android
+          try {
+            if (Platform.isAndroid) {
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+            }
+          } catch (fallbackError) {
+            print('Fallback Fehler: $fallbackError');
+            // Letzter Ausweg
+            if (Platform.isAndroid) {
+              exit(0);
+            }
+          }
+        }
+
+        // Führe den gleichen Logout-Prozess wie in _showLogoutDialog durch
+        if (context.mounted) {
+          Navigator.pop(context); // Schließe den Settings-Screen wenn nötig
+
+          // WICHTIG: Navigiere explizit zum Login-Screen
+          // Lösche alle bisherigen Routes und gehe zum Login
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+            (route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      // Schließe alle offenen Dialoge
+      try {
+        // Schließe den aktuellen Dialog
+        if (dialogContext != null && dialogContext!.mounted) {
+          Navigator.of(dialogContext!, rootNavigator: true).pop();
+        } else if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      } catch (_) {}
+
+      if (context.mounted) {
+        String errorMessage = 'Fehler beim Löschen des Accounts';
+
+        if (e is FirebaseAuthException) {
+          switch (e.code) {
+            case 'requires-recent-login':
+              errorMessage =
+                  'Sie müssen sich erneut anmelden, um den Account zu löschen';
+              break;
+            case 'user-not-found':
+              errorMessage = 'Benutzer nicht gefunden';
+              break;
+            default:
+              errorMessage = e.message ?? 'Unbekannter Fehler beim Löschen';
+          }
+        } else {
+          errorMessage = e.toString().contains(': ')
+              ? e.toString().split(': ').last
+              : e.toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
-}
 
   // Anonymisiere User-Bewertungen
   Future<void> _anonymizeUserReviews(String userId) async {

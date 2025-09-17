@@ -220,7 +220,7 @@ class ApartmentDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Apartment Details'), 
+        title: Text('Wohnungsdetails'),
         centerTitle: true,
         backgroundColor: AppColors.primary, // ✅ THEME FARBE
         foregroundColor: Colors.white, // ✅ THEME FARBE

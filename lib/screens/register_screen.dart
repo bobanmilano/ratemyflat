@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:immo_app/main.dart';
-import 'package:immo_app/theme/app_theme.dart'; // ✅ NEU HINZUGEFÜGT
+import 'package:immo_app/theme/app_theme.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -34,11 +34,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         title: Text('Registrieren'), 
         centerTitle: true,
-        backgroundColor: AppColors.primary, // ✅ THEME FARBE
-        foregroundColor: Colors.white, // ✅ THEME FARBE
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
+        padding: EdgeInsets.all(AppSpacing.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,37 +48,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1), // ✅ THEME FARBE
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Icon(
                   Icons.person_add,
                   size: 60,
-                  color: AppColors.primary, // ✅ THEME FARBE
+                  color: AppColors.primary,
                 ),
               ),
             ),
-            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
+            SizedBox(height: AppSpacing.xxl),
 
             // Hauptüberschrift
             Text(
               'Konto erstellen',
               style: TextStyle(
-                fontSize: AppTypography.headline3, // ✅ THEME TYPOGRAFIE
+                fontSize: AppTypography.headline3,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary, // ✅ THEME FARBE
+                color: AppColors.primary,
               ),
             ),
-            SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
+            SizedBox(height: AppSpacing.s),
 
             Text(
               'Erstellen Sie ein neues Konto',
               style: TextStyle(
-                fontSize: AppTypography.bodyLarge, // ✅ THEME TYPOGRAFIE
-                color: AppColors.textPrimary, // ✅ THEME FARBE
+                fontSize: AppTypography.bodyLarge,
+                color: AppColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
+            SizedBox(height: AppSpacing.xxl),
 
             // Register Form
             Form(
@@ -92,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Ihr gewünschter Benutzername',
                       prefixIcon: Icon(Icons.person),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                        borderRadius: BorderRadius.circular(AppRadius.large),
                       ),
                     ),
                     validator: (value) {
@@ -106,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _username = value,
                   ),
-                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+                  SizedBox(height: AppSpacing.m),
 
                   // Email Field
                   TextFormField(
@@ -115,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'ihre.email@beispiel.de',
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                        borderRadius: BorderRadius.circular(AppRadius.large),
                       ),
                     ),
                     validator: (value) {
@@ -129,16 +129,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _email = value,
                   ),
-                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+                  SizedBox(height: AppSpacing.m),
 
-                  // Password Field
+                  // Password Field - MIT VERBESSERTER VALIDIERUNG
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: 'Passwort',
-                      hintText: 'Mindestens 6 Zeichen',
+                      hintText: 'Mindestens 8 Zeichen aus Buchstaben, Sonderzeichen und Zahlen',
                       prefixIcon: Icon(Icons.lock),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                        borderRadius: BorderRadius.circular(AppRadius.large),
                       ),
                     ),
                     obscureText: true,
@@ -146,14 +146,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Bitte geben Sie ein Passwort ein';
                       }
-                      if (value.length < 6) {
-                        return 'Das Passwort muss mindestens 6 Zeichen haben';
+                      // VERBESSERTE Passwort-Validierung
+                      if (value.length < 8) {
+                        return 'Das Passwort muss mindestens 8 Zeichen haben';
+                      }
+                      if (!value.contains(RegExp(r'[a-zA-Z]'))) {
+                        return 'Das Passwort muss mindestens einen Buchstaben enthalten';
+                      }
+                      if (!value.contains(RegExp(r'[0-9]'))) {
+                        return 'Das Passwort muss mindestens eine Zahl enthalten';
+                      }
+                      if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                        return 'Das Passwort muss mindestens ein Sonderzeichen enthalten (!@#\$%^&* etc.)';
                       }
                       return null;
                     },
                     onSaved: (value) => _password = value,
                   ),
-                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+                  SizedBox(height: AppSpacing.s),
+
+                  // INFO TEXT FÜR PASSWORT-ANFORDERUNGEN
+                  Container(
+                    padding: EdgeInsets.all(AppSpacing.s),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Passwort-Anforderungen:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(height: AppSpacing.xs),
+                        Text(
+                          '• Mindestens 8 Zeichen\n'
+                          '• Enthält Buchstaben\n'
+                          '• Enthält Zahlen\n'
+                          '• Enthält Sonderzeichen',
+                          style: TextStyle(
+                            fontSize: AppTypography.bodySmall,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.m),
 
                   // Password Confirmation Field
                   TextFormField(
@@ -162,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Passwort erneut eingeben',
                       prefixIcon: Icon(Icons.lock_outline),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                        borderRadius: BorderRadius.circular(AppRadius.large),
                       ),
                     ),
                     obscureText: true,
@@ -177,25 +220,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     onSaved: (value) => _confirmPassword = value,
                   ),
-                  SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
+                  SizedBox(height: AppSpacing.xxl),
 
                   // Error Message
                   if (_error.isNotEmpty)
                     Container(
-                      padding: EdgeInsets.all(AppSpacing.s), // ✅ THEME ABSTAND
+                      padding: EdgeInsets.all(AppSpacing.s),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1), // ✅ THEME FARBE
-                        borderRadius: BorderRadius.circular(AppRadius.medium), // ✅ THEME RADIUS
+                        color: AppColors.error.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                         border: Border.all(
-                          color: AppColors.error.withOpacity(0.3), // ✅ THEME FARBE
+                          color: AppColors.error.withOpacity(0.3),
                         ),
                       ),
                       child: Text(
                         _error, 
-                        style: TextStyle(color: AppColors.error), // ✅ THEME FARBE
+                        style: TextStyle(color: AppColors.error),
                       ),
                     ),
-                  SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+                  SizedBox(height: AppSpacing.m),
 
                   // Register Button
                   SizedBox(
@@ -203,11 +246,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: ElevatedButton(
                       onPressed: _loading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.m), // ✅ THEME ABSTAND
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.m),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                          borderRadius: BorderRadius.circular(AppRadius.large),
                         ),
-                        backgroundColor: AppColors.accent, // ✅ THEME FARBE
+                        backgroundColor: AppColors.accent,
                         foregroundColor: Colors.white,
                       ),
                       child: _loading
@@ -215,7 +258,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           : Text(
                               'Konto erstellen',
                               style: TextStyle(
-                                fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                                fontSize: AppTypography.body,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -225,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.xxl), // ✅ THEME ABSTAND
+            SizedBox(height: AppSpacing.xxl),
 
             // Login Link
             Center(
@@ -236,12 +279,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Text.rich(
                   TextSpan(
                     text: 'Bereits ein Konto? ',
-                    style: TextStyle(color: AppColors.textSecondary), // ✅ THEME FARBE
+                    style: TextStyle(color: AppColors.textSecondary),
                     children: [
                       TextSpan(
                         text: 'Anmelden',
                         style: TextStyle(
-                          color: AppColors.primary, // ✅ THEME FARBE
+                          color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -251,16 +294,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+            SizedBox(height: AppSpacing.m),
 
             // Info Card
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.large), // ✅ THEME RADIUS
+                borderRadius: BorderRadius.circular(AppRadius.large),
               ),
               child: Padding(
-                padding: EdgeInsets.all(AppSpacing.m), // ✅ THEME ABSTAND
+                padding: EdgeInsets.all(AppSpacing.m),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -268,25 +311,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         Icon(
                           Icons.security,
-                          color: AppColors.primary, // ✅ THEME FARBE
+                          color: AppColors.primary,
                           size: 24,
                         ),
-                        SizedBox(width: AppSpacing.s), // ✅ THEME ABSTAND
+                        SizedBox(width: AppSpacing.s),
                         Text(
                           'Datenschutz',
                           style: TextStyle(
-                            fontSize: AppTypography.body, // ✅ THEME TYPOGRAFIE
+                            fontSize: AppTypography.body,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: AppSpacing.s), // ✅ THEME ABSTAND
+                    SizedBox(height: AppSpacing.s),
                     Text(
                       'Ihre Daten werden sicher gespeichert und nicht an Dritte weitergegeben.',
                       style: TextStyle(
-                        fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
-                        color: AppColors.textPrimary, // ✅ THEME FARBE
+                        fontSize: AppTypography.bodySmall,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -319,6 +362,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  // VERBESSERTE Passwort-Stärke-Prüfung
+  bool _isPasswordStrong(String password) {
+    if (password.length < 8) return false;
+    if (!password.contains(RegExp(r'[a-zA-Z]'))) return false;
+    if (!password.contains(RegExp(r'[0-9]'))) return false;
+    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) return false;
+    return true;
+  }
+
   Future<void> _handleRegister() async {
     print('Starte Registrierung...');
 
@@ -326,6 +378,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _formKey.currentState!.save();
 
       print('Eingegebene Daten - Email: $_email, Username: $_username');
+
+      // ZUSÄTZLICHE Passwort-Validierung
+      if (_password != null && !_isPasswordStrong(_password!)) {
+        setState(() {
+          _error = 'Das Passwort erfüllt nicht die Sicherheitsanforderungen.';
+          _loading = false;
+        });
+        return;
+      }
 
       if (_email == null || _username == null || _password == null) {
         setState(() {
@@ -398,7 +459,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           } else if (e.code == 'invalid-email') {
             _error = 'Ungültige E-Mail-Adresse.';
           } else if (e.code == 'weak-password') {
-            _error = 'Das Passwort ist zu schwach.';
+            _error = 'Das Passwort ist zu schwach. Bitte verwenden Sie ein stärkeres Passwort.';
           } else if (e.code == 'operation-not-allowed') {
             _error = 'E-Mail/Passwort-Anmeldung ist nicht aktiviert.';
           } else {

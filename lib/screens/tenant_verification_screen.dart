@@ -140,7 +140,9 @@ class _TenantVerificationScreenState extends State<TenantVerificationScreen> {
 
             CheckboxListTile(
               title: Text(
-                'Ich bestätige, dass ich Mieter bin/war und die Angaben wahr sind',
+                   widget.isApartment ? 'Ich bestätige, dass ich Mieter dieser Wohnung bin/war und die Angaben wahr sind' 
+                   : 'Ich bestätige, dass ich Kunde dieses Vermieters bin/war und die Angaben wahr sind',
+             
                 style: TextStyle(
                   fontSize: AppTypography.bodySmall, // ✅ THEME TYPOGRAFIE
                   fontWeight: FontWeight.w500,

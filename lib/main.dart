@@ -12,33 +12,21 @@ import 'package:immo_app/theme/app_theme_config.dart'; // Neuer Import
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('Firebase initialisiert erfolgreich!');
-  } catch (e) {
-    print('Fehler bei Firebase-Initialisierung: $e');
+  // Prüfe ob Firebase bereits initialisiert ist
+  if (Firebase.apps.isEmpty) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      print('Firebase initialisiert erfolgreich!');
+    } catch (e) {
+      print('Fehler bei Firebase-Initialisierung: $e');
+    }
+  } else {
+    print('Firebase bereits initialisiert');
   }
 
   runApp(ImmoRateApp());
-}
-
-class FirebaseInitializer {
-  static bool _isInitialized = false;
-
-  static Future<void> initialize() async {
-    if (!_isInitialized) {
-      try {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        _isInitialized = true;
-      } catch (e) {
-        print('Error initializing Firebase: $e');
-      }
-    }
-  }
 }
 
 class ImmoRateApp extends StatelessWidget {

@@ -672,7 +672,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Apartments'),
+        title: Text('Wohnungen'),
         actions: [
           IconButton(icon: Icon(Icons.sort), onPressed: _showSortDialog),
           IconButton(

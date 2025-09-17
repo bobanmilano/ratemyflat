@@ -82,6 +82,12 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   final FormValidationService _validationService = FormValidationService();
   final DataProcessingService _dataService = DataProcessingService();
 
+  // Anonymität
+  bool _isAnonymous = false; // Neue Variable für Anonymität
+  String _userId = 'anonymous'; // Falls noch nicht vorhanden
+  String _username = 'Anonymous'; // Falls noch nicht vorhanden  
+  String _profileImageUrl = ''; // Falls noch nicht vorhanden
+
   // Ersetze die _saveApartment Methode mit dieser debug-verbesserten Version:
 
   // Füge diese Methode zur _AddApartmentScreenState Klasse hinzu:
@@ -119,6 +125,57 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     } catch (e) {
       print('Fehler beim Testen des Rate-Limits: $e');
     }
+  }
+
+  // Lade die Daten des eingeloggten Users
+  Future<void> _loadCurrentUser() async {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      setState(() {
+        _userId = currentUser.uid;
+      });
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>?;
+          setState(() {
+            _username =
+                userData?['username'] ??
+                currentUser.displayName ??
+                currentUser.email?.split('@')[0] ??
+                'Mieter';
+            _profileImageUrl = userData?['profileImageUrl'] ?? '';
+          });
+        } else {
+          // Fallback zu Firebase Auth Daten
+          setState(() {
+            _username =
+                currentUser.displayName ??
+                currentUser.email?.split('@')[0] ??
+                'Mieter';
+          });
+        }
+      } catch (e) {
+        print('Fehler beim Laden der User-Daten: $e');
+        // Fallback
+        setState(() {
+          _username =
+              currentUser.displayName ??
+              currentUser.email?.split('@')[0] ??
+              'Mieter';
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser(); // Hinzufügen
+    // ... restliche initState-Logik
   }
 
   Future<void> _saveApartment() async {
@@ -395,7 +452,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     String profileImageUrl = '';
     String userId = 'anonymous';
 
-    if (currentUser != null) {
+    if (currentUser != null && !_isAnonymous) { // Nur laden wenn nicht anonym
       userId = currentUser.uid;
 
       try {
@@ -427,6 +484,11 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
             currentUser.email?.split('@')[0] ??
             'Mieter';
       }
+    } else if (_isAnonymous) {
+      // Anonym-Daten
+      username = 'Anonymous';
+      profileImageUrl = '';
+      userId = 'anonymous';
     }
 
     return {
@@ -465,11 +527,11 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     // Erstelle die Review-Datenstruktur (für die Anzeige in der App)
     final reviewData = {
       'userId': userReviewData['userId'],
-      'username': userReviewData['username'],
-      'profileImageUrl': userReviewData['profileImageUrl'],
+      'username': _isAnonymous ? 'Anonymous' : userReviewData['username'], // Anonymität
+      'profileImageUrl': _isAnonymous ? '' : userReviewData['profileImageUrl'], // Anonymität
+      'isAnonymous': _isAnonymous, // Anonymitäts-Flag hinzufügen
       'timestamp': DateTime.now(),
       'additionalComments': _additionalCommentsController.text.trim(),
-      'isAnonymous': false, // Standardmäßig nicht anonym
       // Alle Bewertungskategorien
       'condition': (_ratings['condition'] ?? 1).toDouble(),
       'cleanliness': (_ratings['cleanliness'] ?? 1).toDouble(),
@@ -509,6 +571,9 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     // Erstelle das Apartment-Dokument mit userId und createdAt
     final apartmentData = {
       'userId': userId, // WICHTIG: userId hinzufügen
+      'username': _isAnonymous ? 'Anonymous' : userReviewData['username'], // Anonymität
+      'profileImageUrl': _isAnonymous ? '' : userReviewData['profileImageUrl'], // Anonymität
+      'isAnonymous': _isAnonymous, // Anonymitäts-Flag hinzufügen
       'street': _streetController.text.trim(),
       'houseNumber': _houseNumberController.text.trim(),
       'topStiegeHaus': _topStiegeHausController.text.trim(),
@@ -577,6 +642,139 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     );
   }
 
+  // Anonymität-Option
+  Widget _buildAnonymitySection() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(AppSpacing.m),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Veröffentlichung',
+              style: TextStyle(
+                fontSize: AppTypography.body,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: AppSpacing.s),
+            // User-Info Card (wenn nicht anonym)
+            if (!_isAnonymous)
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.s),
+                  child: Row(
+                    children: [
+                      // Profilbild
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: _profileImageUrl.isNotEmpty
+                            ? NetworkImage(_profileImageUrl)
+                            : null,
+                        child: _profileImageUrl.isEmpty
+                            ? Icon(Icons.person, size: 20)
+                            : null,
+                      ),
+                      SizedBox(width: AppSpacing.s),
+                      // Username und Erstellungsinfo
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Erstellt von:',
+                              style: TextStyle(
+                                fontSize: AppTypography.bodySmall,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              _username,
+                              style: TextStyle(
+                                fontSize: AppTypography.body,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'Heute',
+                              style: TextStyle(
+                                fontSize: AppTypography.caption,
+                                color: AppColors.textDisabled,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            SizedBox(height: AppSpacing.m),
+            SwitchListTile(
+              title: Text('Anonym veröffentlichen'),
+              subtitle: Text(
+                _isAnonymous
+                    ? 'Ihr Name und Profilbild werden nicht angezeigt'
+                    : 'Ihr Name und Profilbild werden öffentlich sichtbar',
+              ),
+              value: _isAnonymous,
+              onChanged: (value) {
+                setState(() {
+                  _isAnonymous = value ?? false;
+                });
+              },
+              secondary: Icon(
+                _isAnonymous ? Icons.visibility_off : Icons.visibility,
+                color: _isAnonymous
+                    ? Colors.grey
+                    : AppColors.primary,
+              ),
+            ),
+            if (_isAnonymous)
+              Container(
+                padding: EdgeInsets.all(AppSpacing.s),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border: Border.all(
+                    color: AppColors.warning.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info, 
+                      color: AppColors.warning,
+                      size: 20,
+                    ),
+                    SizedBox(width: AppSpacing.s),
+                    Expanded(
+                      child: Text(
+                        'Ihre Bewertung wird anonym veröffentlicht. Sie hilft anderen Mietern, ohne Ihre Identität preiszugeben.',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _streetController.dispose();
@@ -633,6 +831,8 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
             ),
             SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             CommentsSection(controller: _additionalCommentsController),
+            SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
+            _buildAnonymitySection(), // NEU HINZUGEFÜGT
             SizedBox(height: AppSpacing.m), // ✅ THEME ABSTAND
             SizedBox(
               width: double.infinity,
