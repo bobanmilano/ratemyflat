@@ -1,4 +1,4 @@
-# immo_app
+
 # RateMyFlat - Mieter-Schutz-App
 
 ![RateMyFlat Logo](assets/logo.png)
