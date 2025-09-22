@@ -32,7 +32,7 @@ Warnen Sie die Community vor problematischen Vermietern und Wohnungen. Gemeinsam
 ### Über GitHub Releases (Empfohlen)
 1. [ APK herunterladen](https://github.com/bobanmilano/ratemyflat/releases/latest)
 2. Auf Ihrem Android-Gerät die heruntergeladene APK-Datei öffnen
-3. Bei der Sicherheitswarnung "Trotzdem installieren" auswählen
+3. "installieren" auswählen
 4. App starten und erste Erfahrungen teilen!
 
 ### Systemanforderungen
