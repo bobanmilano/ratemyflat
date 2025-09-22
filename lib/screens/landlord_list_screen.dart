@@ -203,8 +203,14 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
     return totalCount > 0 ? totalSum / totalCount : 0.0;
   }
 
-  // Methode zur Anzeige der Sternebewertung
-  Widget _buildStarRating(double rating) {
+  // Hilfsfunktion zur Erkennung ob es ein Tablet ist
+  bool _isTablet(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return width > 600; // Typische Schwelle für Tablets
+  }
+
+  // Methode zur Anzeige der Sternebewertung - angepasst für Tablet-Vergrößerung
+  Widget _buildStarRating(double rating, {bool isLarge = false}) {
     int fullStars = rating.floor();
     double fractionalPart = rating - fullStars;
 
@@ -218,15 +224,18 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
 
     int emptyStars = 5 - fullStars - (fractionalPart > 0 ? 1 : 0);
 
+    // Dynamische Größen basierend auf isLarge-Flag
+    final starSize = isLarge ? 24.0 : 14.0;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (int i = 0; i < fullStars; i++)
-          Icon(Icons.star, color: Colors.orange, size: 14),
+          Icon(Icons.star, color: Colors.orange, size: starSize),
         if (fractionalPart == 0.5)
-          Icon(Icons.star_half, color: Colors.orange, size: 14),
+          Icon(Icons.star_half, color: Colors.orange, size: starSize),
         for (int i = 0; i < emptyStars; i++)
-          Icon(Icons.star_border, color: Colors.grey, size: 14),
+          Icon(Icons.star_border, color: Colors.grey, size: starSize),
       ],
     );
   }
@@ -269,6 +278,16 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
     final hasImages = imageUrls != null && imageUrls.isNotEmpty;
     final firstImageUrl = hasImages ? imageUrls![0] : null;
 
+    // Prüfe ob Hochformat (Portrait) vorliegt
+    final orientation = MediaQuery.of(context).orientation;
+    final isPortrait = orientation == Orientation.portrait;
+    
+    // Prüfe ob es ein Tablet ist
+    final isTablet = _isTablet(context);
+    
+    // Kombinierte Bedingung: Nur Tablet im Hochformat
+    final isTabletPortrait = isTablet && isPortrait;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -285,34 +304,45 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: firstImageUrl != null
-                  // ✅ KORRIGIERTES LAZY LOADING MIT IMAGE.NETWORK
-                  ? Image.network(
-                      firstImageUrl,
-                      height: 100,
-                      width: double.infinity,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          height: 100,
+            if (isTabletPortrait) ...[
+              // Tablet Hochformat spezifisches Layout
+              Expanded(
+                flex: 1,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                  child: firstImageUrl != null
+                      ? Image.network(
+                          firstImageUrl,
                           width: double.infinity,
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 100,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.grey[600],
+                                size: 40,
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
                           width: double.infinity,
                           color: Colors.grey[300],
                           child: Icon(
@@ -320,46 +350,134 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
                             color: Colors.grey[600],
                             size: 40,
                           ),
-                        );
-                      },
-                    )
-                  : Container(
-                      height: 100,
-                      width: double.infinity,
-                      color: Colors.grey[300],
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.grey[600],
-                        size: 40,
-                      ),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    landlord['name'] ?? 'Unbekannter Vermieter',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8),
-                  _buildStarRating(overallRating),
-                  SizedBox(height: 4),
-                  Text(
-                    '${landlord['reviews']?.length ?? 0} Bewertungen',
-                    style: TextStyle(color: Colors.grey, fontSize: 10),
-                  ),
-                ],
+                        ),
+                ),
               ),
-            ),
+              SizedBox(height: 30),
+              Text(
+                landlord['name'] ?? 'Unbekannter Vermieter',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildStarRating(overallRating, isLarge: true),
+                    SizedBox(height: 12),
+                    Text(
+                      '${landlord['reviews']?.length ?? 0} Bewertungen',
+                      style: TextStyle(color: Colors.grey, fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // Normales Layout (Smartphones und Tablet Querformat)
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                child: firstImageUrl != null
+                    // ✅ KORRIGIERTES LAZY LOADING MIT IMAGE.NETWORK
+                    ? Image.network(
+                        firstImageUrl,
+                        height: 100,
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: Colors.grey[300],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: Colors.grey[300],
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.grey[600],
+                              size: 40,
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        height: 100,
+                        width: double.infinity,
+                        color: Colors.grey[300],
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.grey[600],
+                          size: 40,
+                        ),
+                      ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      landlord['name'] ?? 'Unbekannter Vermieter',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8),
+                    _buildStarRating(overallRating),
+                    SizedBox(height: 4),
+                    Text(
+                      '${landlord['reviews']?.length ?? 0} Bewertungen',
+                      style: TextStyle(color: Colors.grey, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  // Hilfsfunktion zur Berechnung der Spaltenanzahl basierend auf der Bildschirmbreite
+  int _calculateCrossAxisCount(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    
+    if (width > 1200) {
+      return 4; // Große Tablets oder Desktop
+    } else if (width > 800) {
+      return 3; // Tablets im Querformat
+    } else {
+      return 2; // Smartphones oder Tablets im Hochformat
+    }
+  }
+
+  // Hilfsfunktion zur Berechnung des childAspectRatio basierend auf der Bildschirmbreite
+  double _calculateChildAspectRatio(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    
+    if (width > 1200) {
+      return 0.9; // Für 4 Spalten - höhere Karten
+    } else if (width > 800) {
+      return 0.8; // Für 3 Spalten - mittlere Höhe
+    } else {
+      return 0.8; // Für 2 Spalten - kompakte Karten
+    }
   }
 
   @override
@@ -432,26 +550,32 @@ class _LandlordListScreenState extends State<LandlordListScreen> {
               },
               child: _landlords.isEmpty && !_isLoading
                   ? _buildEmptyState()
-                  : GridView.builder(
-                      controller: _scrollController,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.8,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      padding: EdgeInsets.all(16),
-                      itemCount:
-                          _landlords.length +
-                          (_hasMore && _searchQuery.isEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= _landlords.length) {
-                          // Loading-Indicator am Ende
-                          return _buildLoadingIndicator();
-                        }
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount = _calculateCrossAxisCount(context);
+                        final childAspectRatio = _calculateChildAspectRatio(context);
+                        return GridView.builder(
+                          controller: _scrollController,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            childAspectRatio: childAspectRatio,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
+                          padding: EdgeInsets.all(16),
+                          itemCount:
+                              _landlords.length +
+                              (_hasMore && _searchQuery.isEmpty ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index >= _landlords.length) {
+                              // Loading-Indicator am Ende
+                              return _buildLoadingIndicator();
+                            }
 
-                        final landlordDoc = _landlords[index];
-                        return _buildLandlordCard(landlordDoc);
+                            final landlordDoc = _landlords[index];
+                            return _buildLandlordCard(landlordDoc);
+                          },
+                        );
                       },
                     ),
             ),

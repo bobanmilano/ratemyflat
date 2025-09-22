@@ -74,47 +74,57 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
   }
 
   // Methode zur Anzeige der Sternebewertung
-  Widget buildStarRating(double rating, String label) {
-    int fullStars = rating.floor();
-    double fractionalPart = rating - fullStars;
+ // Hilfsfunktion zur Erkennung ob es ein Tablet ist
+bool _isTablet(BuildContext context) {
+  final width = MediaQuery.of(context).size.width;
+  return width > 600; // Typische Schwelle für Tablets
+}
 
-    if (fractionalPart < 0.5) {
-      fractionalPart = 0;
-    } else if (fractionalPart >= 0.5 && fractionalPart < 1) {
-      fractionalPart = 0.5;
-    } else {
-      fractionalPart = 1;
-    }
+// Methode zur Anzeige der Sternebewertung - angepasst für Tablet-Vergrößerung
+Widget buildStarRating(double rating, String label, {bool isLarge = false}) {
+  int fullStars = rating.floor();
+  double fractionalPart = rating - fullStars;
 
-    int emptyStars = 5 - fullStars - (fractionalPart > 0 ? 1 : 0);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-          ),
-        ),
-        SizedBox(height: 4),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (int i = 0; i < fullStars; i++)
-              Icon(Icons.star, color: Colors.orange, size: 14),
-            if (fractionalPart == 0.5)
-              Icon(Icons.star_half, color: Colors.orange, size: 14),
-            for (int i = 0; i < emptyStars; i++)
-              Icon(Icons.star_border, color: Colors.grey, size: 14),
-          ],
-        ),
-      ],
-    );
+  if (fractionalPart < 0.5) {
+    fractionalPart = 0;
+  } else if (fractionalPart >= 0.5 && fractionalPart < 1) {
+    fractionalPart = 0.5;
+  } else {
+    fractionalPart = 1;
   }
 
+  int emptyStars = 5 - fullStars - (fractionalPart > 0 ? 1 : 0);
+
+  // Dynamische Größen basierend auf isLarge-Flag
+  final labelFontSize = isLarge ? 18.0 : 12.0;
+  final starSize = isLarge ? 24.0 : 14.0;
+
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: labelFontSize,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
+      ),
+      SizedBox(height: isLarge ? 8 : 4),
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (int i = 0; i < fullStars; i++)
+            Icon(Icons.star, color: Colors.orange, size: starSize),
+          if (fractionalPart == 0.5)
+            Icon(Icons.star_half, color: Colors.orange, size: starSize),
+          for (int i = 0; i < emptyStars; i++)
+            Icon(Icons.star_border, color: Colors.grey, size: starSize),
+        ],
+      ),
+    ],
+  );
+}
   @override
   void initState() {
     super.initState();
@@ -539,92 +549,137 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
   }
 
   Widget _buildApartmentCard(DocumentSnapshot apartmentDoc) {
-    final apartment = apartmentDoc.data() as Map<String, dynamic>;
-    final imageUrl = apartment['imageUrls']?.isNotEmpty == true
-        ? apartment['imageUrls'][0]
-        : null;
+  final apartment = apartmentDoc.data() as Map<String, dynamic>;
+  final imageUrl = apartment['imageUrls']?.isNotEmpty == true
+      ? apartment['imageUrls'][0]
+      : null;
 
-    final cleanedAddress = cleanAddress(apartment['addresslong'] ?? '');
+  final cleanedAddress = cleanAddress(apartment['addresslong'] ?? '');
 
-    final List<dynamic>? reviews = apartment['reviews'];
-    final overallRating = calculateOverallRating(reviews ?? []);
+  final List<dynamic>? reviews = apartment['reviews'];
+  final overallRating = calculateOverallRating(reviews ?? []);
 
-    final valueForMoneyRating = reviews != null && reviews.isNotEmpty
-        ? reviews[0]['valueForMoney']?.toDouble() ?? 0.0
-        : 0.0;
+  final valueForMoneyRating = reviews != null && reviews.isNotEmpty
+      ? reviews[0]['valueForMoney']?.toDouble() ?? 0.0
+      : 0.0;
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ApartmentDetailScreen(apartmentDoc: apartmentDoc),
-          ),
-        );
-      },
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                child: imageUrl != null
-                    // ✅ EINFACHERE LÖSUNG MIT TRADITIONELLEM IMAGE.NETWORK
-                    ? Image.network(
-                        imageUrl,
-                        height: 100,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            height: 100,
-                            width: double.infinity,
-                            color: Colors.grey[300],
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
+  // Prüfe ob Hochformat (Portrait) vorliegt
+  final orientation = MediaQuery.of(context).orientation;
+  final isPortrait = orientation == Orientation.portrait;
+  
+  // Prüfe ob es ein Tablet ist
+  final isTablet = _isTablet(context);
+  
+  // Kombinierte Bedingung: Nur Tablet im Hochformat
+  final isTabletPortrait = isTablet && isPortrait;
+
+  return InkWell(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ApartmentDetailScreen(apartmentDoc: apartmentDoc),
+        ),
+      );
+    },
+    child: Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          width: double.infinity,
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
                             ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          print('Bild-Fehler: $error'); // Debug-Ausgabe
-                          print('Bild-URL: $imageUrl'); // Debug-Ausgabe
-                          return Image.asset(
-                            'assets/apartment-placeholder.jpeg',
-                            height: 100,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          );
-                        },
-                      )
-                    : Image.asset(
-                        'assets/apartment-placeholder.jpeg',
-                        height: 100,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Bild-Fehler: $error'); // Debug-Ausgabe
+                        print('Bild-URL: $imageUrl'); // Debug-Ausgabe
+                        return Image.asset(
+                          'assets/apartment-placeholder.jpeg',
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      'assets/apartment-placeholder.jpeg',
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          ),
+          if (isTabletPortrait) ...[
+            // Tablet Hochformat spezifisches Layout
+            SizedBox(height: 30),
+            Text(
+              cleanedAddress,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16, // Doppelt so groß wie vorher
               ),
-              Padding(
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (overallRating > 0)
+                    buildStarRating(overallRating, 'Gesamtbewertung', isLarge: true)
+                  else
+                    Text(
+                      'No entries',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  SizedBox(height: 12),
+                  if (valueForMoneyRating > 0)
+                    buildStarRating(valueForMoneyRating, 'Preis-/Leistung', isLarge: true)
+                  else
+                    Text(
+                      'No entries',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Normales Layout (Smartphones und Tablet Querformat)
+            Expanded(
+              flex: 1,
+              child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       cleanedAddress,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -638,7 +693,7 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                         'No entries',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 4),
                     if (valueForMoneyRating > 0)
                       buildStarRating(valueForMoneyRating, 'Preis-/Leistung')
                     else
@@ -649,13 +704,13 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          ],
+        ],
       ),
-    );
-  }
-
+    ),
+  );
+}
   // Füge diese Methode irgendwo in deine Klasse ein
   Future<bool> _testImageUrl(String url) async {
     try {
@@ -665,6 +720,32 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
     } catch (e) {
       print('URL Test - Fehler: $e, URL: $url');
       return false;
+    }
+  }
+
+  // Hilfsfunktion zur Berechnung der Spaltenanzahl basierend auf der Bildschirmbreite
+  int _calculateCrossAxisCount(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    if (width > 1200) {
+      return 4; // Große Tablets oder Desktop
+    } else if (width > 800) {
+      return 3; // Tablets im Querformat
+    } else {
+      return 2; // Smartphones oder Tablets im Hochformat
+    }
+  }
+
+  // Hilfsfunktion zur Berechnung des childAspectRatio basierend auf der Bildschirmbreite
+  double _calculateChildAspectRatio(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    if (width > 1200) {
+      return 0.9; // Für 4 Spalten - höhere Karten
+    } else if (width > 800) {
+      return 0.8; // Für 3 Spalten - mittlere Höhe
+    } else {
+      return 0.7; // Für 2 Spalten - kompakte Karten
     }
   }
 
@@ -715,24 +796,35 @@ class _ApartmentListScreenState extends State<ApartmentListScreen> {
               },
               child: _apartments.isEmpty && !_isLoading
                   ? _buildEmptyState()
-                  : GridView.builder(
-                      controller: _scrollController,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.7,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      padding: EdgeInsets.all(10),
-                      itemCount: _apartments.length + (_hasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= _apartments.length) {
-                          // Loading-Indicator am Ende
-                          return _buildLoadingIndicator();
-                        }
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount = _calculateCrossAxisCount(
+                          context,
+                        );
+                        final childAspectRatio = _calculateChildAspectRatio(
+                          context,
+                        );
+                        return GridView.builder(
+                          controller: _scrollController,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                childAspectRatio: childAspectRatio,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                              ),
+                          padding: EdgeInsets.all(10),
+                          itemCount: _apartments.length + (_hasMore ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index >= _apartments.length) {
+                              // Loading-Indicator am Ende
+                              return _buildLoadingIndicator();
+                            }
 
-                        final apartmentDoc = _apartments[index];
-                        return _buildApartmentCard(apartmentDoc);
+                            final apartmentDoc = _apartments[index];
+                            return _buildApartmentCard(apartmentDoc);
+                          },
+                        );
                       },
                     ),
             ),
