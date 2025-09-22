@@ -32,6 +32,25 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/.flutter-plugins
+/.flutter-plugins-dependencies
+/pubspec.lock
+
+# Android
+/android/app/build/
+/android/local.properties
+/android/gradlew
+/android/gradle/
+/android/.gradle/
+/android/local.properties
+
+# iOS
+/ios/Flutter/build/
+/ios/Flutter/App.framework/
+/ios/Flutter/Flutter.framework/
+/ios/Pods/
+/ios/.symlinks/
+/ios/Runner.xcworkspace/xcshareddata/
 
 # Symbolication related
 app.*.symbols
@@ -46,3 +65,6 @@ app.*.map.json
 
 # Flutter Keystore Properties
 android/key.properties
+
+# APK (wir wollen die veröffentlichen!)
+# !android/app/build/outputs/apk/release/*.apk
