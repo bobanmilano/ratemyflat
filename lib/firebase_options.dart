@@ -44,7 +44,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBFhx6UP12U26oSv7MEJq_OSbNrdZCdxag',
+    apiKey: 'AIzaSyASv7ysQ7-oGdy9kgaUkS1i6IwmGK8XnnA',
     appId: '1:323316501849:web:ca19b8f7ef6e89ea8a9048',
     messagingSenderId: '323316501849',
     projectId: 'mietbewertung-ddf4a',
