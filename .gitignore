@@ -68,3 +68,12 @@ android/key.properties
 
 # APK (wir wollen die veröffentlichen!)
 # !android/app/build/outputs/apk/release/*.apk
+
+# Firebase Config (enthält API-Keys)
+lib/firebase_options.dart
+
+# Environment files (für zukünftige Keys)
+.env
+*.env
+.env.local
+.env.production

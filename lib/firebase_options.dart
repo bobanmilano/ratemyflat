@@ -55,7 +55,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA-zw6KctOQGXDM6GfFhXZAdiwgJK9evqo',
+    apiKey: 'AIzaSyA5R2w2o-a1CiEtCHUnrrR8Rw3kGRU7Ny0',
     appId: '1:323316501849:android:abeabb3eea6f771a8a9048',
     messagingSenderId: '323316501849',
     projectId: 'mietbewertung-ddf4a',
@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB9TX5IyXlpnn7HDKmPGSPGwFudJESMCVo',
+    apiKey: 'AIzaSyBnFTCOXIN4ukK5F3apLyJ21ffEND_jLwk',
     appId: '1:323316501849:ios:d67c5db7b12208878a9048',
     messagingSenderId: '323316501849',
     projectId: 'mietbewertung-ddf4a',
@@ -74,7 +74,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyB9TX5IyXlpnn7HDKmPGSPGwFudJESMCVo',
+    apiKey: '##################################',
     appId: '1:323316501849:ios:d67c5db7b12208878a9048',
     messagingSenderId: '323316501849',
     projectId: 'mietbewertung-ddf4a',
